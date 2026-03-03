@@ -16,6 +16,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.data.local.EventEntity
@@ -24,6 +27,8 @@ import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
 import com.weeker.app.ui.components.titleCaseFirst
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun TodayScreen(
@@ -38,6 +43,7 @@ fun TodayScreen(
 ) {
     val events by eventsFlow.collectAsState(initial = emptyList())
     BackHandler(onBack = onBack)
+    val todayText = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
 
     Column(
         modifier = Modifier
@@ -50,7 +56,15 @@ fun TodayScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             WeekerBackButton(onClick = onBack)
-            Text(text = t("today").titleCaseFirst(), fontSize = 34.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text(text = buildAnnotatedString {
+                withStyle(SpanStyle(fontSize = 34.sp, color = MaterialTheme.colorScheme.onBackground)) {
+                    append(t("today").titleCaseFirst())
+                    append(" ")
+                }
+                withStyle(SpanStyle(fontSize = 22.sp, color = MaterialTheme.colorScheme.onBackground)) {
+                    append(todayText)
+                }
+            })
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             WeekerButton(text = t("open week"), onClick = onOpenWeek, modifier = Modifier.weight(1f))
