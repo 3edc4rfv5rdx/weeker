@@ -1,0 +1,64 @@
+package com.weeker.app.ui.screens
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.weeker.app.data.local.EventEntity
+import com.weeker.app.ui.components.EventRow
+import com.weeker.app.ui.components.WeekerButton
+import kotlinx.coroutines.flow.Flow
+
+@Composable
+fun TodayScreen(
+    t: (String) -> String,
+    eventsFlow: Flow<List<EventEntity>>,
+    onToggleDone: (EventEntity, Boolean) -> Unit,
+    onAddEvent: () -> Unit,
+    onOpenWeek: () -> Unit,
+    onOpenWeekPicker: () -> Unit,
+    onOpenSettings: () -> Unit
+) {
+    val events by eventsFlow.collectAsState(initial = emptyList())
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text(text = t("today"), fontSize = 34.sp, color = MaterialTheme.colorScheme.onBackground)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            WeekerButton(text = t("open week"), onClick = onOpenWeek, modifier = Modifier.weight(1f))
+            WeekerButton(text = t("calendar"), onClick = onOpenWeekPicker, modifier = Modifier.weight(1f))
+        }
+        WeekerButton(text = t("settings"), onClick = onOpenSettings, modifier = Modifier.fillMaxWidth())
+        WeekerButton(text = t("add event"), onClick = onAddEvent, modifier = Modifier.fillMaxWidth())
+
+        if (events.isEmpty()) {
+            Text(text = t("no events"), fontSize = 22.sp)
+        }
+
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxSize()) {
+            items(events, key = { it.id }) { event ->
+                EventRow(
+                    event = event,
+                    doneLabel = t("done"),
+                    onToggleDone = { checked -> onToggleDone(event, checked) }
+                )
+            }
+        }
+    }
+}

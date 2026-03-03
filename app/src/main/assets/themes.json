@@ -1,0 +1,25 @@
+{
+  "defaultTheme": "contrast_blue",
+  "themes": [
+    {
+      "id": "contrast_blue",
+      "name": "contrast blue",
+      "primary": "#0B57D0",
+      "onPrimary": "#FFFFFF",
+      "background": "#F3F6FB",
+      "onBackground": "#111111",
+      "surface": "#FFFFFF",
+      "onSurface": "#111111"
+    },
+    {
+      "id": "contrast_green",
+      "name": "contrast green",
+      "primary": "#1E6D34",
+      "onPrimary": "#FFFFFF",
+      "background": "#F4FAF4",
+      "onBackground": "#101510",
+      "surface": "#FFFFFF",
+      "onSurface": "#101510"
+    }
+  ]
+}
