@@ -64,7 +64,7 @@ fun WeekerApp(container: AppContainer) {
     val onboardingLanguage = remember {
         container.localizationManager.availableLanguages().firstOrNull() ?: defaultLanguage
     }
-    val selectedLanguage = selectedLanguagePref ?: defaultLanguage
+    val selectedLanguage = selectedLanguagePref ?: onboardingLanguage
     val selectedThemeId = selectedThemePref ?: defaultThemeId
     val theme = remember(selectedThemeId) { container.themeManager.themeById(selectedThemeId) }
 
