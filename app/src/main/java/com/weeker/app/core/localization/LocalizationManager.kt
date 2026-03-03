@@ -41,10 +41,9 @@ class LocalizationManager(context: Context) {
     fun availableLanguages(): List<String> = availableLanguages
 
     fun text(key: String, language: String): String {
+        if (language == "en") return key
         val localized = dictionary[key]?.get(language)
         if (!localized.isNullOrBlank()) return localized
-        val fallback = dictionary[key]?.get(defaultLanguage)
-        if (!fallback.isNullOrBlank()) return fallback
         return key
     }
 

@@ -54,6 +54,9 @@ fun WeekerApp(container: AppContainer) {
 
     val defaultLanguage = remember { container.localizationManager.defaultLanguage() }
     val defaultThemeId = remember { container.themeManager.defaultThemeId() }
+    val onboardingLanguage = remember {
+        container.localizationManager.availableLanguages().firstOrNull() ?: defaultLanguage
+    }
     val selectedLanguage = selectedLanguagePref ?: defaultLanguage
     val selectedThemeId = selectedThemePref ?: defaultThemeId
     val theme = remember(selectedThemeId) { container.themeManager.themeById(selectedThemeId) }
@@ -68,7 +71,7 @@ fun WeekerApp(container: AppContainer) {
             composable(Routes.ONBOARDING) {
                 OnboardingScreen(
                     t = ::t,
-                    currentLanguage = selectedLanguage,
+                    currentLanguage = selectedLanguagePref ?: onboardingLanguage,
                     currentTheme = selectedThemeId,
                     languages = container.localizationManager.availableLanguages(),
                     themes = container.themeManager.allThemes(),
