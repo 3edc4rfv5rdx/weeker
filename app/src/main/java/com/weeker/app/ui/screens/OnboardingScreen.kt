@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.weeker.app.core.theme.AppThemeConfig
 import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
+import com.weeker.app.ui.components.titleCaseFirst
 
 @Composable
 fun OnboardingScreen(
@@ -48,12 +49,12 @@ fun OnboardingScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 WeekerBackButton(onClick = onBack)
-                Text(text = t("welcome"), fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground)
+                Text(text = t("welcome").titleCaseFirst(), fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground)
             }
         }
 
         item {
-            Text(text = t("language"), fontSize = 24.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text(text = t("language").titleCaseFirst(), fontSize = 24.sp, color = MaterialTheme.colorScheme.onBackground)
         }
 
         items(languages) { language ->
@@ -65,7 +66,7 @@ fun OnboardingScreen(
         }
 
         item {
-            Text(text = t("theme"), fontSize = 24.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text(text = t("theme").titleCaseFirst(), fontSize = 24.sp, color = MaterialTheme.colorScheme.onBackground)
         }
 
         items(themes) { theme ->

@@ -21,6 +21,7 @@ import com.weeker.app.data.local.EventEntity
 import com.weeker.app.ui.components.EventRow
 import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
+import com.weeker.app.ui.components.titleCaseFirst
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
@@ -51,7 +52,7 @@ fun WeekScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             WeekerBackButton(onClick = onBack)
-            Text(text = t("week"), fontSize = 34.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text(text = t("week").titleCaseFirst(), fontSize = 34.sp, color = MaterialTheme.colorScheme.onBackground)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             WeekerButton(text = t("previous week"), onClick = onPrevWeek, modifier = Modifier.weight(1f))
@@ -70,7 +71,7 @@ fun WeekScreen(
                 val dayName = dayNameKey(LocalDate.ofEpochDay(day).dayOfWeek.value)
 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    Text(text = t(dayName), fontSize = 24.sp)
+                    Text(text = t(dayName).titleCaseFirst(), fontSize = 24.sp)
                     WeekerButton(text = t("add event"), onClick = { onAddEvent(day) }, modifier = Modifier.fillMaxWidth())
                     if (dayEvents.isEmpty()) {
                         Text(text = t("no events"), fontSize = 18.sp)

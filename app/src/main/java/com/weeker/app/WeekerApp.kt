@@ -35,6 +35,7 @@ import com.weeker.app.data.repository.EventRepository
 import com.weeker.app.navigation.Routes
 import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
+import com.weeker.app.ui.components.titleCaseFirst
 import com.weeker.app.ui.screens.EventEditScreen
 import com.weeker.app.ui.screens.OnboardingScreen
 import com.weeker.app.ui.screens.SettingsScreen
@@ -244,7 +245,7 @@ private fun WeekPickerScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             WeekerBackButton(onClick = onBack)
-            Text(text = t("select week"))
+            Text(text = t("select week").titleCaseFirst())
         }
         DatePicker(state = pickerState, showModeToggle = false)
         WeekerButton(text = t("open week"), onClick = { onPick(LocalDate.ofEpochDay(selectedEpochDay)) }, modifier = Modifier.fillMaxWidth())

@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
+import com.weeker.app.ui.components.titleCaseFirst
 import java.time.LocalDate
 
 @Composable
@@ -41,7 +42,7 @@ fun EventEditScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             WeekerBackButton(onClick = onBack)
-            Text(text = t("add event"), fontSize = 30.sp)
+            Text(text = t("add event").titleCaseFirst(), fontSize = 30.sp)
         }
         Text(text = LocalDate.ofEpochDay(epochDay).toString(), fontSize = 20.sp)
         OutlinedTextField(

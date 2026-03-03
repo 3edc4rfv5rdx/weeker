@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.weeker.app.core.theme.AppThemeConfig
 import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
+import com.weeker.app.ui.components.titleCaseFirst
 
 @Composable
 fun SettingsScreen(
@@ -49,12 +50,12 @@ fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 WeekerBackButton(onClick = onBackArrow)
-                Text(text = t("settings"), fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground)
+                Text(text = t("settings").titleCaseFirst(), fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground)
             }
         }
 
         item {
-            Text(text = t("language"), fontSize = 24.sp)
+            Text(text = t("language").titleCaseFirst(), fontSize = 24.sp)
         }
 
         items(languages) { language ->
@@ -66,7 +67,7 @@ fun SettingsScreen(
         }
 
         item {
-            Text(text = t("theme"), fontSize = 24.sp)
+            Text(text = t("theme").titleCaseFirst(), fontSize = 24.sp)
         }
 
         items(themes) { theme ->

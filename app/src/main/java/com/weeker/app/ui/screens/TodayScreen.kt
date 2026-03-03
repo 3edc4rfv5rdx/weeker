@@ -22,6 +22,7 @@ import com.weeker.app.data.local.EventEntity
 import com.weeker.app.ui.components.EventRow
 import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
+import com.weeker.app.ui.components.titleCaseFirst
 import kotlinx.coroutines.flow.Flow
 
 @Composable
@@ -49,7 +50,7 @@ fun TodayScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             WeekerBackButton(onClick = onBack)
-            Text(text = t("today"), fontSize = 34.sp, color = MaterialTheme.colorScheme.onBackground)
+            Text(text = t("today").titleCaseFirst(), fontSize = 34.sp, color = MaterialTheme.colorScheme.onBackground)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             WeekerButton(text = t("open week"), onClick = onOpenWeek, modifier = Modifier.weight(1f))
