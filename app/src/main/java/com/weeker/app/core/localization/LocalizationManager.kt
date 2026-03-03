@@ -21,7 +21,7 @@ class LocalizationManager(context: Context) {
             }
         }
         if (list.isEmpty()) list += listOf(defaultLanguage, "en")
-        availableLanguages = list.distinct()
+        availableLanguages = prioritizeLanguages(list.distinct())
 
         val strings = root.getJSONObject("strings")
         val map = mutableMapOf<String, Map<String, String>>()
@@ -46,5 +46,17 @@ class LocalizationManager(context: Context) {
         val fallback = dictionary[key]?.get(defaultLanguage)
         if (!fallback.isNullOrBlank()) return fallback
         return key
+    }
+
+    private fun prioritizeLanguages(input: List<String>): List<String> {
+        val preferred = listOf("en", "uk", "ru")
+        val output = mutableListOf<String>()
+        preferred.forEach { lang ->
+            if (lang in input) output += lang
+        }
+        input.forEach { lang ->
+            if (lang !in preferred) output += lang
+        }
+        return output
     }
 }
