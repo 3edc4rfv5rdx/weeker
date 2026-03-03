@@ -67,7 +67,6 @@ fun TodayScreen(
             items(events, key = { it.id }) { event ->
                 EventRow(
                     event = event,
-                    doneLabel = t("done"),
                     onToggleDone = { checked -> onToggleDone(event, checked) }
                 )
             }

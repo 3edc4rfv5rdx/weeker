@@ -77,7 +77,7 @@ fun WeekScreen(
                         Text(text = t("no events"), fontSize = 18.sp)
                     }
                     dayEvents.forEach { event ->
-                        EventRow(event = event, doneLabel = t("done"), onToggleDone = { checked -> onToggleDone(event, checked) })
+                        EventRow(event = event, onToggleDone = { checked -> onToggleDone(event, checked) })
                     }
                 }
             }

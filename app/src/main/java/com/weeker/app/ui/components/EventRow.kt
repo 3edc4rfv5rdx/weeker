@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.data.local.EventEntity
@@ -19,7 +20,6 @@ import com.weeker.app.data.local.EventEntity
 @Composable
 fun EventRow(
     event: EventEntity,
-    doneLabel: String,
     onToggleDone: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -35,11 +35,20 @@ fun EventRow(
             onCheckedChange = onToggleDone
         )
         Column {
-            Text(text = event.title, fontSize = 22.sp, color = MaterialTheme.colorScheme.onSurface)
+            Text(
+                text = event.title,
+                fontSize = 22.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+                textDecoration = if (event.isDone) TextDecoration.LineThrough else TextDecoration.None
+            )
             if (event.note.isNotBlank()) {
-                Text(text = event.note, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+                Text(
+                    text = event.note,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textDecoration = if (event.isDone) TextDecoration.LineThrough else TextDecoration.None
+                )
             }
-            Text(text = doneLabel, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
