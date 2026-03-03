@@ -40,6 +40,7 @@ fun WeekScreen(
     onNextWeek: () -> Unit
 ) {
     val events by eventsFlow.collectAsState(initial = emptyList())
+    val todayEpochDay = LocalDate.now().toEpochDay()
 
     Column(
         modifier = Modifier
@@ -72,7 +73,12 @@ fun WeekScreen(
 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                     Text(text = t(dayName).titleCaseFirst(), fontSize = 24.sp)
-                    WeekerButton(text = t("add event"), onClick = { onAddEvent(day) }, modifier = Modifier.fillMaxWidth())
+                    WeekerButton(
+                        text = t("add event"),
+                        onClick = { onAddEvent(day) },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = day >= todayEpochDay
+                    )
                     if (dayEvents.isEmpty()) {
                         Text(text = t("no events"), fontSize = 18.sp)
                     }

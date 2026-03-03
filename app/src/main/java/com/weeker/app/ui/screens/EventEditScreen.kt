@@ -30,6 +30,7 @@ fun EventEditScreen(
 ) {
     val title = remember { mutableStateOf("") }
     val note = remember { mutableStateOf("") }
+    val isPastDay = epochDay < LocalDate.now().toEpochDay()
 
     Column(
         modifier = Modifier
@@ -58,11 +59,14 @@ fun EventEditScreen(
             label = { Text(t("comment")) },
             modifier = Modifier.fillMaxWidth()
         )
+        if (isPastDay) {
+            Text(text = t("cannot add events in past"), fontSize = 16.sp)
+        }
         WeekerButton(
             text = t("save"),
             onClick = { if (title.value.isNotBlank()) onSave(title.value.trim(), note.value.trim()) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = title.value.isNotBlank()
+            enabled = title.value.isNotBlank() && !isPastDay
         )
         WeekerButton(text = t("cancel"), onClick = onCancel, modifier = Modifier.fillMaxWidth())
     }
