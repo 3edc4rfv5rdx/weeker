@@ -1,25 +1,36 @@
 {
-  "defaultTheme": "contrast_blue",
+  "defaultTheme": "core",
+  "defaultMode": "light",
   "themes": [
     {
-      "id": "contrast_blue",
-      "name": "contrast blue",
-      "primary": "#0B57D0",
-      "onPrimary": "#FFFFFF",
-      "background": "#F3F6FB",
-      "onBackground": "#111111",
-      "surface": "#FFFFFF",
-      "onSurface": "#111111"
-    },
-    {
-      "id": "contrast_green",
-      "name": "contrast green",
-      "primary": "#1E6D34",
-      "onPrimary": "#FFFFFF",
-      "background": "#F4FAF4",
-      "onBackground": "#101510",
-      "surface": "#FFFFFF",
-      "onSurface": "#101510"
+      "id": "core",
+      "name": "core",
+      "light": {
+        "primary": "#2F6FA3",
+        "onPrimary": "#FFFFFF",
+        "background": "#F3F6FA",
+        "onBackground": "#182129",
+        "surface": "#FFFFFF",
+        "onSurface": "#182129",
+        "weekStatusColors": {
+          "past": { "container": "#E1A35B", "content": "#1C160E" },
+          "current": { "container": "#3F865C", "content": "#FFFFFF" },
+          "future": { "container": "#2F73AF", "content": "#FFFFFF" }
+        }
+      },
+      "dark": {
+        "primary": "#88B7DF",
+        "onPrimary": "#0C1116",
+        "background": "#11161B",
+        "onBackground": "#E8EEF3",
+        "surface": "#1A2128",
+        "onSurface": "#E8EEF3",
+        "weekStatusColors": {
+          "past": { "container": "#CF9654", "content": "#151008" },
+          "current": { "container": "#3A8158", "content": "#FFFFFF" },
+          "future": { "container": "#2C699F", "content": "#FFFFFF" }
+        }
+      }
     }
   ]
 }

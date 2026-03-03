@@ -30,6 +30,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.weeker.app.core.theme.ThemeMode
 import com.weeker.app.core.theme.WeekerTheme
 import com.weeker.app.data.repository.EventRepository
 import com.weeker.app.navigation.Routes
@@ -58,16 +59,18 @@ fun WeekerApp(container: AppContainer) {
         container.settingsRepository.onboardingDoneFlow.collect { value = it }
     }
     val selectedLanguagePref by container.settingsRepository.languageFlow.collectAsState(initial = null)
-    val selectedThemePref by container.settingsRepository.themeFlow.collectAsState(initial = null)
+    val selectedThemeModePref by container.settingsRepository.themeModeFlow.collectAsState(initial = null)
 
     val defaultLanguage = remember { container.localizationManager.defaultLanguage() }
     val defaultThemeId = remember { container.themeManager.defaultThemeId() }
+    val defaultThemeMode = remember { container.themeManager.defaultMode() }
     val onboardingLanguage = remember {
         container.localizationManager.availableLanguages().firstOrNull() ?: defaultLanguage
     }
     val selectedLanguage = selectedLanguagePref ?: onboardingLanguage
-    val selectedThemeId = selectedThemePref ?: defaultThemeId
-    val theme = remember(selectedThemeId) { container.themeManager.themeById(selectedThemeId) }
+    val selectedThemeMode = ThemeMode.fromId(selectedThemeModePref ?: defaultThemeMode.id)
+    val theme = remember(defaultThemeId) { container.themeManager.themeById(defaultThemeId) }
+    val palette = remember(theme, selectedThemeMode) { theme.palette(selectedThemeMode) }
 
     fun t(key: String): String = container.localizationManager.text(key, selectedLanguage)
     fun goBack(): Unit {
@@ -88,7 +91,7 @@ fun WeekerApp(container: AppContainer) {
         }
     }
 
-    WeekerTheme(theme = theme) {
+    WeekerTheme(theme = theme, mode = selectedThemeMode) {
         val onboardingDone = onboardingDoneState.value ?: return@WeekerTheme
         val startDestination = if (onboardingDone) Routes.TODAY else Routes.ONBOARDING
 
@@ -97,14 +100,13 @@ fun WeekerApp(container: AppContainer) {
                 OnboardingScreen(
                     t = ::t,
                     currentLanguage = selectedLanguagePref ?: onboardingLanguage,
-                    currentTheme = selectedThemeId,
+                    currentMode = selectedThemeMode,
                     languages = container.localizationManager.availableLanguages(),
-                    themes = container.themeManager.allThemes(),
                     onBack = ::goBack,
-                    onSave = { language, themeId ->
+                    onSave = { language, mode ->
                         scope.launch {
                             container.settingsRepository.setLanguage(language)
-                            container.settingsRepository.setTheme(themeId)
+                            container.settingsRepository.setThemeMode(mode.id)
                             container.settingsRepository.setOnboardingDone(true)
                             navController.navigate(Routes.TODAY) {
                                 popUpTo(Routes.ONBOARDING) { inclusive = true }
@@ -143,6 +145,7 @@ fun WeekerApp(container: AppContainer) {
                     t = ::t,
                     weekStart = start,
                     eventsFlow = container.eventRepository.observeWeek(start),
+                    weekStatusColors = palette.weekStatusColors,
                     onBack = ::goBack,
                     onToggleDone = { event, checked ->
                         scope.launch { container.eventRepository.toggleDone(event, checked) }
@@ -181,14 +184,13 @@ fun WeekerApp(container: AppContainer) {
                 SettingsScreen(
                     t = ::t,
                     currentLanguage = selectedLanguage,
-                    currentTheme = selectedThemeId,
+                    currentMode = selectedThemeMode,
                     languages = container.localizationManager.availableLanguages(),
-                    themes = container.themeManager.allThemes(),
                     onBackArrow = ::goBack,
-                    onSave = { language, themeId ->
+                    onSave = { language, mode ->
                         scope.launch {
                             container.settingsRepository.setLanguage(language)
-                            container.settingsRepository.setTheme(themeId)
+                            container.settingsRepository.setThemeMode(mode.id)
                             navController.popBackStack()
                         }
                     },

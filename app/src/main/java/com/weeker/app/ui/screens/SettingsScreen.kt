@@ -19,7 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.weeker.app.core.theme.AppThemeConfig
+import com.weeker.app.core.theme.ThemeMode
 import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
 import com.weeker.app.ui.components.titleCaseFirst
@@ -28,15 +28,14 @@ import com.weeker.app.ui.components.titleCaseFirst
 fun SettingsScreen(
     t: (String) -> String,
     currentLanguage: String,
-    currentTheme: String,
+    currentMode: ThemeMode,
     languages: List<String>,
-    themes: List<AppThemeConfig>,
     onBackArrow: () -> Unit,
-    onSave: (String, String) -> Unit,
+    onSave: (String, ThemeMode) -> Unit,
     onBack: () -> Unit
 ) {
     val selectedLanguage = remember { mutableStateOf(currentLanguage) }
-    val selectedTheme = remember { mutableStateOf(currentTheme) }
+    val selectedMode = remember { mutableStateOf(currentMode) }
 
     LazyColumn(
         modifier = Modifier
@@ -67,21 +66,29 @@ fun SettingsScreen(
         }
 
         item {
-            Text(text = t("theme").titleCaseFirst(), fontSize = 24.sp)
+            Text(text = t("mode").titleCaseFirst(), fontSize = 24.sp)
         }
 
-        items(themes) { theme ->
+        item {
             SelectOption(
-                label = theme.name,
-                selected = selectedTheme.value == theme.id,
-                onClick = { selectedTheme.value = theme.id }
+                label = t("light").titleCaseFirst(),
+                selected = selectedMode.value == ThemeMode.LIGHT,
+                onClick = { selectedMode.value = ThemeMode.LIGHT }
+            )
+        }
+
+        item {
+            SelectOption(
+                label = t("dark").titleCaseFirst(),
+                selected = selectedMode.value == ThemeMode.DARK,
+                onClick = { selectedMode.value = ThemeMode.DARK }
             )
         }
 
         item {
             WeekerButton(
                 text = t("save"),
-                onClick = { onSave(selectedLanguage.value, selectedTheme.value) },
+                onClick = { onSave(selectedLanguage.value, selectedMode.value) },
                 modifier = Modifier.fillMaxWidth()
             )
         }

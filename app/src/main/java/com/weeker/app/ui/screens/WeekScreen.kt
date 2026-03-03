@@ -28,6 +28,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.data.local.EventEntity
+import com.weeker.app.core.theme.WeekStateColor
+import com.weeker.app.core.theme.WeekStatusColors
 import com.weeker.app.ui.components.EventRow
 import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
@@ -41,6 +43,7 @@ fun WeekScreen(
     t: (String) -> String,
     weekStart: Long,
     eventsFlow: Flow<List<EventEntity>>,
+    weekStatusColors: WeekStatusColors,
     onBack: () -> Unit,
     onToggleDone: (EventEntity, Boolean) -> Unit,
     onAddEvent: (Long) -> Unit,
@@ -51,8 +54,18 @@ fun WeekScreen(
     onNextWeek: () -> Unit
 ) {
     val events by eventsFlow.collectAsState(initial = emptyList())
-    val todayEpochDay = LocalDate.now().toEpochDay()
+    val today = LocalDate.now()
+    val todayEpochDay = today.toEpochDay()
+    val currentWeekStart = today.minusDays((today.dayOfWeek.value - 1).toLong()).toEpochDay()
+    val currentWeekStateColor: WeekStateColor = when {
+        weekStart < currentWeekStart -> weekStatusColors.past
+        weekStart > currentWeekStart -> weekStatusColors.future
+        else -> weekStatusColors.current
+    }
     val weekRange = formatWeekRange(weekStart)
+    val pastColor = weekStatusColors.past
+    val currentColor = weekStatusColors.current
+    val futureColor = weekStatusColors.future
 
     Column(
         modifier = Modifier
@@ -65,25 +78,61 @@ fun WeekScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             WeekerBackButton(onClick = onBack)
-            Text(text = buildAnnotatedString {
-                withStyle(SpanStyle(fontSize = 34.sp, color = MaterialTheme.colorScheme.onBackground)) {
-                    append(t("week").titleCaseFirst())
-                    append(" ")
-                }
-                withStyle(SpanStyle(fontSize = 22.sp, color = MaterialTheme.colorScheme.onBackground)) {
-                    append(weekRange)
-                }
-            })
+            Box(
+                modifier = Modifier
+                    .background(currentWeekStateColor.container, shape = CircleShape)
+                    .padding(horizontal = 14.dp, vertical = 8.dp)
+            ) {
+                Text(text = buildAnnotatedString {
+                    withStyle(SpanStyle(fontSize = 34.sp, color = currentWeekStateColor.content)) {
+                        append(t("week").titleCaseFirst())
+                        append(" ")
+                    }
+                    withStyle(SpanStyle(fontSize = 22.sp, color = currentWeekStateColor.content)) {
+                        append(weekRange)
+                    }
+                })
+            }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            WeekerButton(text = t("previous week"), onClick = onPrevWeek, modifier = Modifier.weight(1f))
-            WeekerButton(text = t("next week"), onClick = onNextWeek, modifier = Modifier.weight(1f))
+            WeekerButton(
+                text = t("previous week"),
+                onClick = onPrevWeek,
+                modifier = Modifier.weight(1f),
+                containerColor = pastColor.container,
+                contentColor = pastColor.content
+            )
+            WeekerButton(
+                text = t("next week"),
+                onClick = onNextWeek,
+                modifier = Modifier.weight(1f),
+                containerColor = futureColor.container,
+                contentColor = futureColor.content
+            )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            WeekerButton(text = t("calendar"), onClick = onOpenWeekPicker, modifier = Modifier.weight(1f))
-            WeekerButton(text = t("open today"), onClick = onOpenToday, modifier = Modifier.weight(1f))
+            WeekerButton(
+                text = t("calendar"),
+                onClick = onOpenWeekPicker,
+                modifier = Modifier.weight(1f),
+                containerColor = currentWeekStateColor.container,
+                contentColor = currentWeekStateColor.content
+            )
+            WeekerButton(
+                text = t("open today"),
+                onClick = onOpenToday,
+                modifier = Modifier.weight(1f),
+                containerColor = currentColor.container,
+                contentColor = currentColor.content
+            )
         }
-        WeekerButton(text = t("move undone"), onClick = onMoveUndone, modifier = Modifier.fillMaxWidth())
+        WeekerButton(
+            text = t("move undone"),
+            onClick = onMoveUndone,
+            modifier = Modifier.fillMaxWidth(),
+            containerColor = currentWeekStateColor.container,
+            contentColor = currentWeekStateColor.content
+        )
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxSize()) {
             items((0L..6L).toList()) { dayOffset ->
@@ -91,6 +140,11 @@ fun WeekScreen(
                 val dayEvents = events.filter { it.dateEpochDay == day }
                 val dayName = dayNameKey(LocalDate.ofEpochDay(day).dayOfWeek.value)
                 val dayDate = LocalDate.ofEpochDay(day).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+                val dayStateColor = when {
+                    day < todayEpochDay -> pastColor
+                    day > todayEpochDay -> futureColor
+                    else -> currentColor
+                }
                 val canAdd = day >= todayEpochDay
 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
@@ -108,7 +162,11 @@ fun WeekScreen(
                                 append(dayDate)
                             }
                         })
-                        AddCircleButton(enabled = canAdd, onClick = { onAddEvent(day) })
+                        AddCircleButton(
+                            enabled = canAdd,
+                            colors = dayStateColor,
+                            onClick = { onAddEvent(day) }
+                        )
                     }
                     if (dayEvents.isEmpty()) {
                         Text(text = t("no events"), fontSize = 18.sp)
@@ -123,9 +181,9 @@ fun WeekScreen(
 }
 
 @Composable
-private fun AddCircleButton(enabled: Boolean, onClick: () -> Unit) {
-    val bg = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
-    val fg = if (enabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+private fun AddCircleButton(enabled: Boolean, colors: WeekStateColor, onClick: () -> Unit) {
+    val bg = if (enabled) colors.container else MaterialTheme.colorScheme.surface
+    val fg = if (enabled) colors.content else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
     Box(
         modifier = Modifier
             .background(bg, CircleShape)
