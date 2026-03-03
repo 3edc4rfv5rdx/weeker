@@ -1,6 +1,7 @@
 package com.weeker.app.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,9 +16,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.core.theme.AppThemeConfig
+import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
 
 @Composable
@@ -27,6 +30,7 @@ fun OnboardingScreen(
     currentTheme: String,
     languages: List<String>,
     themes: List<AppThemeConfig>,
+    onBack: () -> Unit,
     onSave: (String, String) -> Unit
 ) {
     val selectedLanguage = remember { mutableStateOf(currentLanguage) }
@@ -39,7 +43,13 @@ fun OnboardingScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            Text(text = t("onboarding title"), fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                WeekerBackButton(onClick = onBack)
+                Text(text = t("onboarding title"), fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground)
+            }
         }
 
         item {

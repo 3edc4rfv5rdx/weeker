@@ -1,5 +1,6 @@
 package com.weeker.app.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,11 +14,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.data.local.EventEntity
 import com.weeker.app.ui.components.EventRow
+import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
 import kotlinx.coroutines.flow.Flow
 
@@ -25,6 +28,7 @@ import kotlinx.coroutines.flow.Flow
 fun TodayScreen(
     t: (String) -> String,
     eventsFlow: Flow<List<EventEntity>>,
+    onBack: () -> Unit,
     onToggleDone: (EventEntity, Boolean) -> Unit,
     onAddEvent: () -> Unit,
     onOpenWeek: () -> Unit,
@@ -32,6 +36,7 @@ fun TodayScreen(
     onOpenSettings: () -> Unit
 ) {
     val events by eventsFlow.collectAsState(initial = emptyList())
+    BackHandler(onBack = onBack)
 
     Column(
         modifier = Modifier
@@ -39,7 +44,13 @@ fun TodayScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text(text = t("today"), fontSize = 34.sp, color = MaterialTheme.colorScheme.onBackground)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            WeekerBackButton(onClick = onBack)
+            Text(text = t("today"), fontSize = 34.sp, color = MaterialTheme.colorScheme.onBackground)
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             WeekerButton(text = t("open week"), onClick = onOpenWeek, modifier = Modifier.weight(1f))
             WeekerButton(text = t("calendar"), onClick = onOpenWeekPicker, modifier = Modifier.weight(1f))

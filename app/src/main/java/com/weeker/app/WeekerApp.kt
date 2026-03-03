@@ -1,15 +1,17 @@
 package com.weeker.app
 
+import android.app.Activity
+import android.os.SystemClock
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,6 +22,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
@@ -30,6 +33,7 @@ import androidx.navigation.compose.rememberNavController
 import com.weeker.app.core.theme.WeekerTheme
 import com.weeker.app.data.repository.EventRepository
 import com.weeker.app.navigation.Routes
+import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
 import com.weeker.app.ui.screens.EventEditScreen
 import com.weeker.app.ui.screens.OnboardingScreen
@@ -40,11 +44,14 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun WeekerApp(container: AppContainer) {
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var lastTodayBackAt by remember { mutableLongStateOf(0L) }
 
     val onboardingDoneState = produceState<Boolean?>(initialValue = null) {
         container.settingsRepository.onboardingDoneFlow.collect { value = it }
@@ -62,6 +69,23 @@ fun WeekerApp(container: AppContainer) {
     val theme = remember(selectedThemeId) { container.themeManager.themeById(selectedThemeId) }
 
     fun t(key: String): String = container.localizationManager.text(key, selectedLanguage)
+    fun goBack(): Unit {
+        val popped = navController.popBackStack()
+        if (!popped) {
+            navController.navigate(Routes.TODAY) {
+                launchSingleTop = true
+            }
+        }
+    }
+    fun exitFromTodayByDoubleBack() {
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastTodayBackAt <= 1500L) {
+            (context as? Activity)?.finish()
+        } else {
+            lastTodayBackAt = now
+            Toast.makeText(context, t("press back again to exit"), Toast.LENGTH_SHORT).show()
+        }
+    }
 
     WeekerTheme(theme = theme) {
         val onboardingDone = onboardingDoneState.value ?: return@WeekerTheme
@@ -75,6 +99,7 @@ fun WeekerApp(container: AppContainer) {
                     currentTheme = selectedThemeId,
                     languages = container.localizationManager.availableLanguages(),
                     themes = container.themeManager.allThemes(),
+                    onBack = ::goBack,
                     onSave = { language, themeId ->
                         scope.launch {
                             container.settingsRepository.setLanguage(language)
@@ -94,6 +119,7 @@ fun WeekerApp(container: AppContainer) {
                 TodayScreen(
                     t = ::t,
                     eventsFlow = container.eventRepository.observeDay(todayEpochDay),
+                    onBack = ::exitFromTodayByDoubleBack,
                     onToggleDone = { event, checked ->
                         scope.launch { container.eventRepository.toggleDone(event, checked) }
                     },
@@ -116,6 +142,7 @@ fun WeekerApp(container: AppContainer) {
                     t = ::t,
                     weekStart = start,
                     eventsFlow = container.eventRepository.observeWeek(start),
+                    onBack = ::goBack,
                     onToggleDone = { event, checked ->
                         scope.launch { container.eventRepository.toggleDone(event, checked) }
                     },
@@ -138,6 +165,7 @@ fun WeekerApp(container: AppContainer) {
                 EventEditScreen(
                     t = ::t,
                     epochDay = epochDay,
+                    onBack = ::goBack,
                     onSave = { title, note ->
                         scope.launch {
                             container.eventRepository.addEvent(title, note, epochDay)
@@ -155,6 +183,7 @@ fun WeekerApp(container: AppContainer) {
                     currentTheme = selectedThemeId,
                     languages = container.localizationManager.availableLanguages(),
                     themes = container.themeManager.allThemes(),
+                    onBackArrow = ::goBack,
                     onSave = { language, themeId ->
                         scope.launch {
                             container.settingsRepository.setLanguage(language)
@@ -173,7 +202,7 @@ fun WeekerApp(container: AppContainer) {
                         val monday = EventRepository.mondayStart(date)
                         navController.navigate(Routes.weekRoute(monday))
                     },
-                    onBack = { navController.popBackStack() }
+                    onBack = ::goBack
                 )
             }
         }
@@ -204,17 +233,21 @@ private fun WeekPickerScreen(
             .toEpochDay()
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(text = t("select week")) }) }) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            DatePicker(state = pickerState, showModeToggle = false)
-            WeekerButton(text = t("open week"), onClick = { onPick(LocalDate.ofEpochDay(selectedEpochDay)) }, modifier = Modifier.fillMaxWidth())
-            WeekerButton(text = t("cancel"), onClick = onBack, modifier = Modifier.fillMaxWidth())
+            WeekerBackButton(onClick = onBack)
+            Text(text = t("select week"))
         }
+        DatePicker(state = pickerState, showModeToggle = false)
+        WeekerButton(text = t("open week"), onClick = { onPick(LocalDate.ofEpochDay(selectedEpochDay)) }, modifier = Modifier.fillMaxWidth())
+        WeekerButton(text = t("cancel"), onClick = onBack, modifier = Modifier.fillMaxWidth())
     }
 }

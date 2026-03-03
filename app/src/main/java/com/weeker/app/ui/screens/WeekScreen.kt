@@ -14,10 +14,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.data.local.EventEntity
 import com.weeker.app.ui.components.EventRow
+import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
@@ -27,6 +29,7 @@ fun WeekScreen(
     t: (String) -> String,
     weekStart: Long,
     eventsFlow: Flow<List<EventEntity>>,
+    onBack: () -> Unit,
     onToggleDone: (EventEntity, Boolean) -> Unit,
     onAddEvent: (Long) -> Unit,
     onMoveUndone: () -> Unit,
@@ -43,7 +46,13 @@ fun WeekScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text(text = t("week"), fontSize = 34.sp, color = MaterialTheme.colorScheme.onBackground)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            WeekerBackButton(onClick = onBack)
+            Text(text = t("week"), fontSize = 34.sp, color = MaterialTheme.colorScheme.onBackground)
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             WeekerButton(text = t("previous week"), onClick = onPrevWeek, modifier = Modifier.weight(1f))
             WeekerButton(text = t("next week"), onClick = onNextWeek, modifier = Modifier.weight(1f))
