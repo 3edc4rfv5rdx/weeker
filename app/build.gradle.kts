@@ -1,7 +1,25 @@
+import java.io.File
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.kapt)
+}
+
+val keyProperties = Properties()
+val keyPropertiesFile = sequenceOf(
+    File("/home/e/.my-safe/key.properties"),
+    rootProject.file("key.properties")
+).firstOrNull { it.exists() } ?: rootProject.file("key.properties")
+val hasReleaseSigning = keyPropertiesFile.exists().also { exists ->
+    if (exists) {
+        keyPropertiesFile.inputStream().use { keyProperties.load(it) }
+    }
+}
+val keyStoreFile = (keyProperties["storeFile"] as String?)?.let { rawPath ->
+    val candidate = File(rawPath)
+    if (candidate.isAbsolute) candidate else File(keyPropertiesFile.parentFile, rawPath)
 }
 
 android {
@@ -21,9 +39,22 @@ android {
         }
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = keyStoreFile
+                storePassword = keyProperties["storePassword"] as String
+                keyAlias = keyProperties["keyAlias"] as String
+                keyPassword = keyProperties["keyPassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            isDebuggable = false
+            signingConfig = signingConfigs.findByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
