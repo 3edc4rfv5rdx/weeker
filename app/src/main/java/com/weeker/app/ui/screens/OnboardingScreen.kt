@@ -48,7 +48,7 @@ fun OnboardingScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 WeekerBackButton(onClick = onBack)
-                Text(text = t("onboarding title"), fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground)
+                Text(text = t("welcome"), fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground)
             }
         }
 
