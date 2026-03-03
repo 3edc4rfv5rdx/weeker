@@ -18,11 +18,20 @@ interface EventDao {
     @Query("SELECT * FROM events WHERE dateEpochDay BETWEEN :startEpochDay AND :endEpochDay AND isDone = 0 ORDER BY dateEpochDay ASC, sortOrder ASC")
     suspend fun getUndoneByWeek(startEpochDay: Long, endEpochDay: Long): List<EventEntity>
 
+    @Query("SELECT * FROM events ORDER BY dateEpochDay ASC, sortOrder ASC, id ASC")
+    suspend fun getAll(): List<EventEntity>
+
+    @Query("DELETE FROM events")
+    suspend fun deleteAll()
+
     @Query("SELECT COUNT(*) FROM events WHERE dateEpochDay = :epochDay")
     suspend fun countByDay(epochDay: Long): Int
 
     @Insert
     suspend fun insert(entity: EventEntity): Long
+
+    @Insert
+    suspend fun insertAll(entities: List<EventEntity>)
 
     @Update
     suspend fun update(entity: EventEntity)

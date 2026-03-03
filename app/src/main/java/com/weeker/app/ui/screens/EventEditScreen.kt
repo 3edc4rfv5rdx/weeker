@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.weeker.app.ui.components.AppMenuButton
 import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
 import com.weeker.app.ui.components.titleCaseFirst
@@ -25,6 +26,10 @@ fun EventEditScreen(
     t: (String) -> String,
     epochDay: Long,
     onBack: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onBackup: () -> Unit,
+    onRestore: () -> Unit,
+    onAbout: () -> Unit,
     onSave: (String, String) -> Unit,
     onCancel: () -> Unit
 ) {
@@ -42,8 +47,20 @@ fun EventEditScreen(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            WeekerBackButton(onClick = onBack)
-            Text(text = t("add event").titleCaseFirst(), fontSize = 30.sp)
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                WeekerBackButton(onClick = onBack)
+                Text(text = t("add event").titleCaseFirst(), fontSize = 30.sp)
+            }
+            AppMenuButton(
+                t = t,
+                onSettings = onOpenSettings,
+                onBackup = onBackup,
+                onRestore = onRestore,
+                onAbout = onAbout
+            )
         }
         Text(text = LocalDate.ofEpochDay(epochDay).toString(), fontSize = 20.sp)
         OutlinedTextField(

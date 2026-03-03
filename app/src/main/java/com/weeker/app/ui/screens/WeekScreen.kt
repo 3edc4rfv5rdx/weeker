@@ -22,14 +22,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.data.local.EventEntity
 import com.weeker.app.core.theme.WeekStateColor
 import com.weeker.app.core.theme.WeekStatusColors
+import com.weeker.app.ui.components.AppMenuButton
 import com.weeker.app.ui.components.EventRow
 import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
@@ -45,7 +43,14 @@ fun WeekScreen(
     eventsFlow: Flow<List<EventEntity>>,
     weekStatusColors: WeekStatusColors,
     onBack: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onBackup: () -> Unit,
+    onRestore: () -> Unit,
+    onAbout: () -> Unit,
     onToggleDone: (EventEntity, Boolean) -> Unit,
+    onDeleteEvent: (EventEntity) -> Unit,
+    onMoveEvent: (EventEntity) -> Unit,
+    onCopyEvent: (EventEntity) -> Unit,
     onAddEvent: (Long) -> Unit,
     onMoveUndone: () -> Unit,
     onOpenToday: () -> Unit,
@@ -73,25 +78,41 @@ fun WeekScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            WeekerBackButton(onClick = onBack)
-            Box(
-                modifier = Modifier
-                    .background(currentWeekStateColor.container, shape = CircleShape)
-                    .padding(horizontal = 14.dp, vertical = 8.dp)
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Box(modifier = Modifier.align(Alignment.Center)) {
+                Box(
+                    modifier = Modifier
+                        .background(currentWeekStateColor.container, shape = CircleShape)
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = t("week").titleCaseFirst(),
+                            fontSize = 34.sp,
+                            color = currentWeekStateColor.content
+                        )
+                        Text(
+                            text = weekRange,
+                            fontSize = 22.sp,
+                            color = currentWeekStateColor.content,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        )
+                    }
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = buildAnnotatedString {
-                    withStyle(SpanStyle(fontSize = 34.sp, color = currentWeekStateColor.content)) {
-                        append(t("week").titleCaseFirst())
-                        append(" ")
-                    }
-                    withStyle(SpanStyle(fontSize = 22.sp, color = currentWeekStateColor.content)) {
-                        append(weekRange)
-                    }
-                })
+                WeekerBackButton(onClick = onBack)
+                AppMenuButton(
+                    t = t,
+                    onSettings = onOpenSettings,
+                    onBackup = onBackup,
+                    onRestore = onRestore,
+                    onAbout = onAbout
+                )
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
@@ -126,14 +147,6 @@ fun WeekScreen(
                 contentColor = currentColor.content
             )
         }
-        WeekerButton(
-            text = t("move undone"),
-            onClick = onMoveUndone,
-            modifier = Modifier.fillMaxWidth(),
-            containerColor = currentWeekStateColor.container,
-            contentColor = currentWeekStateColor.content
-        )
-
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxSize()) {
             items((0L..6L).toList()) { dayOffset ->
                 val day = weekStart + dayOffset
@@ -153,15 +166,30 @@ fun WeekScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = buildAnnotatedString {
-                            withStyle(SpanStyle(fontSize = 24.sp, color = MaterialTheme.colorScheme.onBackground)) {
-                                append(t(dayName).titleCaseFirst())
-                                append(" ")
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .background(dayStateColor.container, CircleShape)
+                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = t(dayName).titleCaseFirst(),
+                                    fontSize = 22.sp,
+                                    color = dayStateColor.content
+                                )
                             }
-                            withStyle(SpanStyle(fontSize = 18.sp, color = MaterialTheme.colorScheme.onBackground)) {
-                                append(dayDate)
+                            Box(
+                                modifier = Modifier
+                                    .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = dayDate,
+                                    fontSize = 18.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
-                        })
+                        }
                         AddCircleButton(
                             enabled = canAdd,
                             colors = dayStateColor,
@@ -172,7 +200,14 @@ fun WeekScreen(
                         Text(text = t("no events"), fontSize = 18.sp)
                     }
                     dayEvents.forEach { event ->
-                        EventRow(event = event, onToggleDone = { checked -> onToggleDone(event, checked) })
+                        EventRow(
+                            event = event,
+                            t = t,
+                            onToggleDone = { checked -> onToggleDone(event, checked) },
+                            onDelete = onDeleteEvent,
+                            onMoveTo = onMoveEvent,
+                            onCopyTo = onCopyEvent
+                        )
                     }
                 }
             }

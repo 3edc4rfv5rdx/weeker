@@ -28,6 +28,27 @@ class EventRepository(private val dao: EventDao) {
         dao.update(entity.copy(isDone = value))
     }
 
+    suspend fun deleteEvent(entity: EventEntity) {
+        dao.delete(entity)
+    }
+
+    suspend fun moveEventToDate(entity: EventEntity, newEpochDay: Long) {
+        val sortOrder = dao.countByDay(newEpochDay) + 1
+        dao.update(entity.copy(dateEpochDay = newEpochDay, sortOrder = sortOrder))
+    }
+
+    suspend fun copyEventToDate(entity: EventEntity, newEpochDay: Long) {
+        val sortOrder = dao.countByDay(newEpochDay) + 1
+        dao.insert(
+            entity.copy(
+                id = 0,
+                dateEpochDay = newEpochDay,
+                isDone = false,
+                sortOrder = sortOrder
+            )
+        )
+    }
+
     suspend fun moveUndoneToNextWeek(weekStartEpochDay: Long) {
         val undone = dao.getUndoneByWeek(weekStartEpochDay, weekStartEpochDay + 6)
         undone.forEach { item ->
@@ -39,6 +60,14 @@ class EventRepository(private val dao: EventDao) {
                 )
             )
         }
+    }
+
+    suspend fun exportEvents(): List<EventEntity> = dao.getAll()
+
+    suspend fun replaceAllEvents(items: List<EventEntity>) {
+        dao.deleteAll()
+        val sanitized = items.map { it.copy(id = 0) }
+        dao.insertAll(sanitized)
     }
 
     companion object {

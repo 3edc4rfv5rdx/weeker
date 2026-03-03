@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.core.theme.ThemeMode
+import com.weeker.app.ui.components.AppMenuButton
 import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
 import com.weeker.app.ui.components.titleCaseFirst
@@ -31,6 +32,10 @@ fun SettingsScreen(
     currentMode: ThemeMode,
     languages: List<String>,
     onBackArrow: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onBackup: () -> Unit,
+    onRestore: () -> Unit,
+    onAbout: () -> Unit,
     onSave: (String, ThemeMode) -> Unit,
     onBack: () -> Unit
 ) {
@@ -48,8 +53,20 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                WeekerBackButton(onClick = onBackArrow)
-                Text(text = t("settings").titleCaseFirst(), fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground)
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    WeekerBackButton(onClick = onBackArrow)
+                    Text(text = t("settings").titleCaseFirst(), fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground)
+                }
+                AppMenuButton(
+                    t = t,
+                    onSettings = onOpenSettings,
+                    onBackup = onBackup,
+                    onRestore = onRestore,
+                    onAbout = onAbout
+                )
             }
         }
 

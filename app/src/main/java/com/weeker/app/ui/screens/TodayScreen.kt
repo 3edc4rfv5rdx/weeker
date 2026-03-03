@@ -22,6 +22,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.data.local.EventEntity
+import com.weeker.app.ui.components.AppMenuButton
 import com.weeker.app.ui.components.EventRow
 import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
@@ -35,11 +36,17 @@ fun TodayScreen(
     t: (String) -> String,
     eventsFlow: Flow<List<EventEntity>>,
     onBack: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onBackup: () -> Unit,
+    onRestore: () -> Unit,
+    onAbout: () -> Unit,
     onToggleDone: (EventEntity, Boolean) -> Unit,
+    onDeleteEvent: (EventEntity) -> Unit,
+    onMoveEvent: (EventEntity) -> Unit,
+    onCopyEvent: (EventEntity) -> Unit,
     onAddEvent: () -> Unit,
     onOpenWeek: () -> Unit,
-    onOpenWeekPicker: () -> Unit,
-    onOpenSettings: () -> Unit
+    onOpenWeekPicker: () -> Unit
 ) {
     val events by eventsFlow.collectAsState(initial = emptyList())
     BackHandler(onBack = onBack)
@@ -55,22 +62,33 @@ fun TodayScreen(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            WeekerBackButton(onClick = onBack)
-            Text(text = buildAnnotatedString {
-                withStyle(SpanStyle(fontSize = 34.sp, color = MaterialTheme.colorScheme.onBackground)) {
-                    append(t("today").titleCaseFirst())
-                    append(" ")
-                }
-                withStyle(SpanStyle(fontSize = 22.sp, color = MaterialTheme.colorScheme.onBackground)) {
-                    append(todayText)
-                }
-            })
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                WeekerBackButton(onClick = onBack)
+                Text(text = buildAnnotatedString {
+                    withStyle(SpanStyle(fontSize = 34.sp, color = MaterialTheme.colorScheme.onBackground)) {
+                        append(t("today").titleCaseFirst())
+                        append(" ")
+                    }
+                    withStyle(SpanStyle(fontSize = 22.sp, color = MaterialTheme.colorScheme.onBackground)) {
+                        append(todayText)
+                    }
+                })
+            }
+            AppMenuButton(
+                t = t,
+                onSettings = onOpenSettings,
+                onBackup = onBackup,
+                onRestore = onRestore,
+                onAbout = onAbout
+            )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             WeekerButton(text = t("open week"), onClick = onOpenWeek, modifier = Modifier.weight(1f))
             WeekerButton(text = t("calendar"), onClick = onOpenWeekPicker, modifier = Modifier.weight(1f))
         }
-        WeekerButton(text = t("settings"), onClick = onOpenSettings, modifier = Modifier.fillMaxWidth())
         WeekerButton(text = t("add event"), onClick = onAddEvent, modifier = Modifier.fillMaxWidth())
 
         if (events.isEmpty()) {
@@ -81,7 +99,11 @@ fun TodayScreen(
             items(events, key = { it.id }) { event ->
                 EventRow(
                     event = event,
-                    onToggleDone = { checked -> onToggleDone(event, checked) }
+                    t = t,
+                    onToggleDone = { checked -> onToggleDone(event, checked) },
+                    onDelete = onDeleteEvent,
+                    onMoveTo = onMoveEvent,
+                    onCopyTo = onCopyEvent
                 )
             }
         }
