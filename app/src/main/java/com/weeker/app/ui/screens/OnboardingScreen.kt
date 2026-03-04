@@ -126,7 +126,7 @@ private fun SelectCard(label: String, selected: Boolean, onClick: () -> Unit) {
     ) {
         Text(
             text = label,
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(10.dp),
             fontSize = 20.sp
         )
     }

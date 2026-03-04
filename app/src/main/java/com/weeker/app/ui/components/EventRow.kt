@@ -50,7 +50,7 @@ fun EventRow(
                 .pointerInput(event.id) {
                     detectTapGestures(onLongPress = { menuExpanded = true })
                 }
-                .padding(12.dp),
+                .padding(10.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Checkbox(

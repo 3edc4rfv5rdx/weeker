@@ -1,5 +1,6 @@
 package com.weeker.app.ui.components
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -28,7 +29,8 @@ fun WeekerButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor
-        )
+        ),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Text(text = text, fontSize = 18.sp)
     }

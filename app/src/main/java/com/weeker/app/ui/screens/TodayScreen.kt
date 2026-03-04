@@ -86,7 +86,7 @@ fun TodayScreen(
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            WeekerButton(text = t("open week"), onClick = onOpenWeek, modifier = Modifier.weight(1f))
+            WeekerButton(text = t("week"), onClick = onOpenWeek, modifier = Modifier.weight(1f))
             WeekerButton(text = t("calendar"), onClick = onOpenWeekPicker, modifier = Modifier.weight(1f))
         }
         WeekerButton(text = t("add event"), onClick = onAddEvent, modifier = Modifier.fillMaxWidth())

@@ -83,7 +83,7 @@ fun WeekScreen(
                 Box(
                     modifier = Modifier
                         .background(currentWeekStateColor.container, shape = CircleShape)
-                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
@@ -95,7 +95,7 @@ fun WeekScreen(
                             text = weekRange,
                             fontSize = 22.sp,
                             color = currentWeekStateColor.content,
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.padding(horizontal = 6.dp)
                         )
                     }
                 }
@@ -117,7 +117,7 @@ fun WeekScreen(
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             WeekerButton(
-                text = t("previous week"),
+                text = t("prev week"),
                 onClick = onPrevWeek,
                 modifier = Modifier.weight(1f),
                 containerColor = pastColor.container,
@@ -140,7 +140,7 @@ fun WeekScreen(
                 contentColor = currentWeekStateColor.content
             )
             WeekerButton(
-                text = t("open today"),
+                text = t("today"),
                 onClick = onOpenToday,
                 modifier = Modifier.weight(1f),
                 containerColor = currentColor.container,
@@ -170,7 +170,7 @@ fun WeekScreen(
                             Box(
                                 modifier = Modifier
                                     .background(dayStateColor.container, CircleShape)
-                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                                    .padding(horizontal = 8.dp, vertical = 3.dp)
                             ) {
                                 Text(
                                     text = t(dayName).titleCaseFirst(),
@@ -181,7 +181,7 @@ fun WeekScreen(
                             Box(
                                 modifier = Modifier
                                     .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                                    .padding(horizontal = 8.dp, vertical = 3.dp)
                             ) {
                                 Text(
                                     text = dayDate,
@@ -223,7 +223,7 @@ private fun AddCircleButton(enabled: Boolean, colors: WeekStateColor, onClick: (
         modifier = Modifier
             .background(bg, CircleShape)
             .clickable(enabled = enabled, onClick = onClick)
-            .padding(8.dp)
+            .padding(6.dp)
     ) {
         Icon(imageVector = Icons.Default.Add, contentDescription = "Add", tint = fg)
     }
