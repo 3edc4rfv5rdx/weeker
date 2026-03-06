@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +16,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.SpanStyle
@@ -49,8 +50,9 @@ fun TodayScreen(
     onOpenWeekPicker: () -> Unit
 ) {
     val events by eventsFlow.collectAsState(initial = emptyList())
-    BackHandler(onBack = onBack)
     val todayText = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+    val todayEventColorA = Color(0xFFFFF6CC)
+    val todayEventColorB = Color(0xFFE3F2FD)
 
     Column(
         modifier = Modifier
@@ -96,14 +98,15 @@ fun TodayScreen(
         }
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxSize()) {
-            items(events, key = { it.id }) { event ->
+            itemsIndexed(events, key = { _, event -> event.id }) { index, event ->
                 EventRow(
                     event = event,
                     t = t,
                     onToggleDone = { checked -> onToggleDone(event, checked) },
                     onDelete = onDeleteEvent,
                     onMoveTo = onMoveEvent,
-                    onCopyTo = onCopyEvent
+                    onCopyTo = onCopyEvent,
+                    containerColor = if (index % 2 == 0) todayEventColorA else todayEventColorB
                 )
             }
         }

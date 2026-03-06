@@ -36,17 +36,19 @@ fun EventRow(
     onDelete: (EventEntity) -> Unit,
     onMoveTo: (EventEntity) -> Unit,
     onCopyTo: (EventEntity) -> Unit,
+    containerColor: Color? = null,
     modifier: Modifier = Modifier
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     val menuBg = Color(0xFFE9DDF8)
     val menuText = Color(0xFF111111)
+    val rowBg = containerColor ?: MaterialTheme.colorScheme.surface
 
     Box {
         Row(
             modifier = modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(14.dp))
+                .background(rowBg, RoundedCornerShape(14.dp))
                 .pointerInput(event.id) {
                     detectTapGestures(onLongPress = { menuExpanded = true })
                 }

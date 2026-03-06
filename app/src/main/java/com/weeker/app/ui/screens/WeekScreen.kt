@@ -22,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.data.local.EventEntity
@@ -52,7 +53,6 @@ fun WeekScreen(
     onMoveEvent: (EventEntity) -> Unit,
     onCopyEvent: (EventEntity) -> Unit,
     onAddEvent: (Long) -> Unit,
-    onMoveUndone: () -> Unit,
     onOpenToday: () -> Unit,
     onOpenWeekPicker: () -> Unit,
     onPrevWeek: () -> Unit,
@@ -151,14 +151,17 @@ fun WeekScreen(
             items((0L..6L).toList()) { dayOffset ->
                 val day = weekStart + dayOffset
                 val dayEvents = events.filter { it.dateEpochDay == day }
-                val dayName = dayNameKey(LocalDate.ofEpochDay(day).dayOfWeek.value)
-                val dayDate = LocalDate.ofEpochDay(day).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+                val dayLocalDate = LocalDate.ofEpochDay(day)
+                val dayName = dayNameKey(dayLocalDate.dayOfWeek.value)
+                val dayLabel = "${t(dayName).titleCaseFirst()} ${dayLocalDate.dayOfMonth}"
                 val dayStateColor = when {
                     day < todayEpochDay -> pastColor
                     day > todayEpochDay -> futureColor
                     else -> currentColor
                 }
                 val canAdd = day >= todayEpochDay
+                val dayEventColorA = Color(0xFFFFF6CC)
+                val dayEventColorB = Color(0xFFE3F2FD)
 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                     Row(
@@ -173,20 +176,9 @@ fun WeekScreen(
                                     .padding(horizontal = 8.dp, vertical = 3.dp)
                             ) {
                                 Text(
-                                    text = t(dayName).titleCaseFirst(),
+                                    text = dayLabel,
                                     fontSize = 22.sp,
                                     color = dayStateColor.content
-                                )
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-                                    .padding(horizontal = 8.dp, vertical = 3.dp)
-                            ) {
-                                Text(
-                                    text = dayDate,
-                                    fontSize = 18.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -199,14 +191,15 @@ fun WeekScreen(
                     if (dayEvents.isEmpty()) {
                         Text(text = t("no events"), fontSize = 18.sp)
                     }
-                    dayEvents.forEach { event ->
+                    dayEvents.forEachIndexed { index, event ->
                         EventRow(
                             event = event,
                             t = t,
                             onToggleDone = { checked -> onToggleDone(event, checked) },
                             onDelete = onDeleteEvent,
                             onMoveTo = onMoveEvent,
-                            onCopyTo = onCopyEvent
+                            onCopyTo = onCopyEvent,
+                            containerColor = if (index % 2 == 0) dayEventColorA else dayEventColorB
                         )
                     }
                 }

@@ -1,8 +1,18 @@
 package com.weeker.app
 
 import android.app.Activity
+import android.content.ContentUris
+import android.content.ContentValues
+import android.content.Context
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteException
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
 import android.os.SystemClock
+import android.provider.MediaStore
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -13,6 +23,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -61,8 +73,6 @@ import com.weeker.app.ui.screens.TodayScreen
 import com.weeker.app.ui.screens.WeekScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.json.JSONArray
-import org.json.JSONObject
 import java.io.File
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -75,9 +85,11 @@ fun WeekerApp(container: AppContainer) {
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    var lastTodayBackAt by remember { mutableLongStateOf(0L) }
+    var lastExitTapAt by remember { mutableLongStateOf(0L) }
 
     var showAboutDialog by remember { mutableStateOf(false) }
+    var showRestoreDialog by remember { mutableStateOf(false) }
+    var restoreDbBackups by remember { mutableStateOf<List<DbBackupRef>>(emptyList()) }
     var moveEventTarget by remember { mutableStateOf<EventEntity?>(null) }
     var copyEventTarget by remember { mutableStateOf<EventEntity?>(null) }
 
@@ -101,6 +113,10 @@ fun WeekerApp(container: AppContainer) {
     fun t(key: String): String = container.localizationManager.text(key, selectedLanguage)
     val menuBg = Color(0xFFE9DDF8)
     val menuText = Color(0xFF111111)
+    val appTitle = "Weeker"
+    val appAuthor = "Eugen"
+    val appVersion = BuildConfig.VERSION_NAME
+    val appBuild = BuildConfig.VERSION_CODE
 
     fun goBack() {
         val popped = navController.popBackStack()
@@ -111,28 +127,32 @@ fun WeekerApp(container: AppContainer) {
         }
     }
 
-    fun exitFromTodayByDoubleBack() {
+    fun exitFromAnyScreenByDoubleTap() {
         val now = SystemClock.elapsedRealtime()
-        if (now - lastTodayBackAt <= 1500L) {
+        if (now - lastExitTapAt <= 1500L) {
             (context as? Activity)?.finish()
         } else {
-            lastTodayBackAt = now
+            lastExitTapAt = now
             Toast.makeText(context, t("press back again to exit"), Toast.LENGTH_SHORT).show()
         }
     }
 
     fun onSettingsFromMenu() {
-        navController.navigate(Routes.SETTINGS)
+        navController.navigate(Routes.SETTINGS) {
+            launchSingleTop = true
+        }
     }
 
     fun onBackupFromMenu() {
         scope.launch(Dispatchers.IO) {
             runCatching {
-                val file = writeBackupFile(context.filesDir, container.eventRepository.exportEvents())
-                file.name
-            }.onSuccess { fileName ->
+                val events = container.eventRepository.exportEvents()
+                val folder = writePublicBackupFiles(context, events)
+                cleanupLegacyJsonBackups(context.filesDir)
+                folder
+            }.onSuccess { folderPath ->
                 launch(Dispatchers.Main) {
-                    Toast.makeText(context, "${t("backup created")}: $fileName", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "${t("backup created")}: $folderPath", Toast.LENGTH_SHORT).show()
                 }
             }.onFailure {
                 launch(Dispatchers.Main) {
@@ -145,11 +165,15 @@ fun WeekerApp(container: AppContainer) {
     fun onRestoreFromMenu() {
         scope.launch(Dispatchers.IO) {
             runCatching {
-                val restored = restoreFromLatestBackup(context.filesDir)
-                container.eventRepository.replaceAllEvents(restored)
-            }.onSuccess {
+                listDbBackups(context)
+            }.onSuccess { backups ->
                 launch(Dispatchers.Main) {
-                    Toast.makeText(context, t("restore complete"), Toast.LENGTH_SHORT).show()
+                    if (backups.isEmpty()) {
+                        Toast.makeText(context, t("no backup files"), Toast.LENGTH_SHORT).show()
+                    } else {
+                        restoreDbBackups = backups
+                        showRestoreDialog = true
+                    }
                 }
             }.onFailure {
                 launch(Dispatchers.Main) {
@@ -160,8 +184,30 @@ fun WeekerApp(container: AppContainer) {
         }
     }
 
+    fun onRestoreBackupSelected(backup: DbBackupRef) {
+        showRestoreDialog = false
+        scope.launch(Dispatchers.IO) {
+            runCatching {
+                val restored = readEventsFromDbBackup(context, backup)
+                container.eventRepository.replaceAllEvents(restored)
+            }.onSuccess {
+                launch(Dispatchers.Main) {
+                    Toast.makeText(context, t("restore complete"), Toast.LENGTH_SHORT).show()
+                }
+            }.onFailure {
+                launch(Dispatchers.Main) {
+                    Toast.makeText(context, t("restore failed"), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     fun onAboutFromMenu() {
         showAboutDialog = true
+    }
+
+    BackHandler {
+        exitFromAnyScreenByDoubleTap()
     }
 
     LaunchedEffect(selectedLanguage) {
@@ -185,7 +231,7 @@ fun WeekerApp(container: AppContainer) {
                     currentLanguage = selectedLanguagePref ?: onboardingLanguage,
                     currentMode = selectedThemeMode,
                     languages = container.localizationManager.availableLanguages(),
-                    onBack = ::goBack,
+                    onBack = ::exitFromAnyScreenByDoubleTap,
                     onOpenSettings = ::onSettingsFromMenu,
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
@@ -204,12 +250,12 @@ fun WeekerApp(container: AppContainer) {
             }
 
             composable(Routes.TODAY) {
-                val today = remember { LocalDate.now() }
-                val todayEpochDay = remember { today.toEpochDay() }
+                val today = LocalDate.now()
+                val todayEpochDay = today.toEpochDay()
                 TodayScreen(
                     t = ::t,
                     eventsFlow = container.eventRepository.observeDay(todayEpochDay),
-                    onBack = ::exitFromTodayByDoubleBack,
+                    onBack = ::exitFromAnyScreenByDoubleTap,
                     onOpenSettings = ::onSettingsFromMenu,
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
@@ -256,9 +302,6 @@ fun WeekerApp(container: AppContainer) {
                     onMoveEvent = { moveEventTarget = it },
                     onCopyEvent = { copyEventTarget = it },
                     onAddEvent = { day -> navController.navigate(Routes.eventEditRoute(day)) },
-                    onMoveUndone = {
-                        scope.launch { container.eventRepository.moveUndoneToNextWeek(start) }
-                    },
                     onOpenToday = { navController.navigate(Routes.TODAY) },
                     onOpenWeekPicker = { navController.navigate(Routes.WEEK_PICKER) },
                     onPrevWeek = { navController.navigate(Routes.weekRoute(start - 7)) },
@@ -320,7 +363,8 @@ fun WeekerApp(container: AppContainer) {
                         val monday = EventRepository.mondayStart(date)
                         navController.navigate(Routes.weekRoute(monday))
                     },
-                    onBack = ::goBack,
+                    onBackArrow = ::goBack,
+                    onCancel = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
@@ -332,12 +376,60 @@ fun WeekerApp(container: AppContainer) {
         if (showAboutDialog) {
             AlertDialog(
                 onDismissRequest = { showAboutDialog = false },
-                title = { Text(t("about").titleCaseFirst(), color = menuText, fontSize = 24.sp) },
-                text = { Text(t("about text").titleCaseFirst(), color = menuText, fontSize = 19.sp) },
+                title = {
+                    Column {
+                        Text(appTitle, color = menuText, fontSize = 24.sp)
+                        Text(t("weekly planner").titleCaseFirst(), color = menuText, fontSize = 16.sp)
+                    }
+                },
+                text = {
+                    Text(
+                        text = "${t("author").titleCaseFirst()}: $appAuthor\n" +
+                            "${t("version").titleCaseFirst()}: $appVersion\n" +
+                            "${t("build").titleCaseFirst()}: $appBuild",
+                        color = menuText,
+                        fontSize = 19.sp
+                    )
+                },
                 containerColor = menuBg,
                 confirmButton = {
-                    TextButton(onClick = { showAboutDialog = false }) {
-                        Text(t("ok").ifBlank { "OK" }, color = menuText, fontSize = 18.sp)
+                    Button(
+                        onClick = { showAboutDialog = false },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                            contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
+                        Text(t("ok").ifBlank { "OK" }, fontSize = 18.sp)
+                    }
+                }
+            )
+        }
+
+        if (showRestoreDialog) {
+            AlertDialog(
+                onDismissRequest = { showRestoreDialog = false },
+                title = { Text(t("restore").titleCaseFirst(), color = menuText, fontSize = 24.sp) },
+                text = {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.verticalScroll(rememberScrollState())
+                    ) {
+                        restoreDbBackups.forEach { backup ->
+                            TextButton(
+                                onClick = { onRestoreBackupSelected(backup) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(text = backup.label, color = menuText, fontSize = 16.sp)
+                            }
+                        }
+                    }
+                },
+                containerColor = menuBg,
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = { showRestoreDialog = false }) {
+                        Text(t("cancel").titleCaseFirst(), color = menuText, fontSize = 18.sp)
                     }
                 }
             )
@@ -352,7 +444,13 @@ fun WeekerApp(container: AppContainer) {
                 initialEpochDay = moveTarget.dateEpochDay,
                 onDismiss = { moveEventTarget = null },
                 onConfirm = { newEpochDay ->
-                    scope.launch { container.eventRepository.moveEventToDate(moveTarget, newEpochDay) }
+                    scope.launch {
+                        runCatching {
+                            container.eventRepository.moveEventToDate(moveTarget, newEpochDay)
+                        }.onFailure {
+                            Toast.makeText(context, t("cannot add events in past"), Toast.LENGTH_SHORT).show()
+                        }
+                    }
                     moveEventTarget = null
                 }
             )
@@ -367,7 +465,13 @@ fun WeekerApp(container: AppContainer) {
                 initialEpochDay = copyTarget.dateEpochDay,
                 onDismiss = { copyEventTarget = null },
                 onConfirm = { newEpochDay ->
-                    scope.launch { container.eventRepository.copyEventToDate(copyTarget, newEpochDay) }
+                    scope.launch {
+                        runCatching {
+                            container.eventRepository.copyEventToDate(copyTarget, newEpochDay)
+                        }.onFailure {
+                            Toast.makeText(context, t("cannot add events in past"), Toast.LENGTH_SHORT).show()
+                        }
+                    }
                     copyEventTarget = null
                 }
             )
@@ -381,7 +485,8 @@ private fun WeekPickerScreen(
     t: (String) -> String,
     languageCode: String,
     onPick: (LocalDate) -> Unit,
-    onBack: () -> Unit,
+    onBackArrow: () -> Unit,
+    onCancel: () -> Unit,
     onOpenSettings: () -> Unit,
     onBackup: () -> Unit,
     onRestore: () -> Unit,
@@ -403,7 +508,7 @@ private fun WeekPickerScreen(
                 modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                WeekerBackButton(onClick = onBack)
+                WeekerBackButton(onClick = onBackArrow)
                 Text(text = t("select week").titleCaseFirst())
             }
             AppMenuButton(
@@ -422,7 +527,7 @@ private fun WeekPickerScreen(
         )
         ConfirmCancelRow(
             t = t,
-            onCancel = onBack,
+            onCancel = onCancel,
             onConfirm = { onPick(LocalDate.ofEpochDay(selectedEpochDay)) }
         )
     }
@@ -439,6 +544,7 @@ private fun MoveEventDateDialog(
     onConfirm: (Long) -> Unit
 ) {
     var selectedEpochDay by remember { mutableLongStateOf(initialEpochDay) }
+    val canConfirm = selectedEpochDay >= LocalDate.now().toEpochDay()
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -455,7 +561,8 @@ private fun MoveEventDateDialog(
                 ConfirmCancelRow(
                     t = t,
                     onCancel = onDismiss,
-                    onConfirm = { onConfirm(selectedEpochDay) }
+                    onConfirm = { onConfirm(selectedEpochDay) },
+                    confirmEnabled = canConfirm
                 )
             }
         },
@@ -468,7 +575,8 @@ private fun MoveEventDateDialog(
 private fun ConfirmCancelRow(
     t: (String) -> String,
     onCancel: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
+    confirmEnabled: Boolean = true
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -482,7 +590,8 @@ private fun ConfirmCancelRow(
         WeekerButton(
             text = t("ok").titleCaseFirst(),
             onClick = onConfirm,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            enabled = confirmEnabled
         )
     }
 }
@@ -684,47 +793,263 @@ private fun weekdayLabels(languageCode: String): List<String> {
     }
 }
 
-private fun writeBackupFile(root: File, events: List<EventEntity>): File {
-    val dir = File(root, "backups")
-    if (!dir.exists()) dir.mkdirs()
-    val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-    val file = File(dir, "weeker_backup_$stamp.json")
+private fun writePublicBackupFiles(context: Context, events: List<EventEntity>): String {
+    val dayFolder = "w" + SimpleDateFormat("yyyyMMdd", Locale.US).format(Date())
+    val dbBytes = buildBackupDbBytes(context.cacheDir, events)
+    val csvBytes = buildBackupCsv(events).toByteArray(Charsets.UTF_8)
 
-    val arr = JSONArray()
-    events.forEach { e ->
-        arr.put(
-            JSONObject()
-                .put("title", e.title)
-                .put("note", e.note)
-                .put("dateEpochDay", e.dateEpochDay)
-                .put("isDone", e.isDone)
-                .put("sortOrder", e.sortOrder)
-        )
-    }
-    val rootObj = JSONObject().put("events", arr)
-    file.writeText(rootObj.toString())
-    return file
+    writeToDocumentsWeeker(context, dayFolder, "backup.db", "application/octet-stream", dbBytes)
+    writeToDocumentsWeeker(context, dayFolder, "backup.csv", "text/csv", csvBytes)
+    return "Documents/Weeker/$dayFolder"
 }
 
-private fun restoreFromLatestBackup(root: File): List<EventEntity> {
-    val dir = File(root, "backups")
-    val latest = dir.listFiles()?.filter { it.isFile && it.name.endsWith(".json") }
-        ?.maxByOrNull { it.lastModified() }
-        ?: throw NoSuchElementException("No backup files")
-
-    val json = JSONObject(latest.readText())
-    val arr = json.getJSONArray("events")
-    val restored = mutableListOf<EventEntity>()
-    for (i in 0 until arr.length()) {
-        val item = arr.getJSONObject(i)
-        restored += EventEntity(
-            id = 0,
-            title = item.optString("title", ""),
-            note = item.optString("note", ""),
-            dateEpochDay = item.optLong("dateEpochDay"),
-            isDone = item.optBoolean("isDone", false),
-            sortOrder = item.optInt("sortOrder", i + 1)
+private fun buildBackupDbBytes(tempDir: File, events: List<EventEntity>): ByteArray {
+    val tempDb = File.createTempFile("weeker_backup_", ".db", tempDir)
+    val db = SQLiteDatabase.openOrCreateDatabase(tempDb, null)
+    try {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                title TEXT NOT NULL,
+                note TEXT NOT NULL,
+                dateEpochDay INTEGER NOT NULL,
+                isDone INTEGER NOT NULL,
+                sortOrder INTEGER NOT NULL
+            )
+            """.trimIndent()
         )
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_events_dateEpochDay ON events(dateEpochDay)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_events_dateEpochDay_sortOrder ON events(dateEpochDay, sortOrder)")
+        db.beginTransaction()
+        try {
+            events.forEach { event ->
+                val values = ContentValues().apply {
+                    put("id", event.id)
+                    put("title", event.title)
+                    put("note", event.note)
+                    put("dateEpochDay", event.dateEpochDay)
+                    put("isDone", if (event.isDone) 1 else 0)
+                    put("sortOrder", event.sortOrder)
+                }
+                db.insertOrThrow("events", null, values)
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    } finally {
+        db.close()
     }
-    return restored
+
+    return try {
+        tempDb.readBytes()
+    } finally {
+        tempDb.delete()
+    }
+}
+
+private fun buildBackupCsv(events: List<EventEntity>): String {
+    val sb = StringBuilder()
+    sb.append("id,title,note,dateEpochDay,isDone,sortOrder\n")
+    events.forEach { event ->
+        sb.append(event.id).append(',')
+        sb.append(csvEscape(event.title)).append(',')
+        sb.append(csvEscape(event.note)).append(',')
+        sb.append(event.dateEpochDay).append(',')
+        sb.append(if (event.isDone) 1 else 0).append(',')
+        sb.append(event.sortOrder).append('\n')
+    }
+    return sb.toString()
+}
+
+private fun csvEscape(value: String): String {
+    val escaped = value.replace("\"", "\"\"")
+    return "\"$escaped\""
+}
+
+private fun writeToDocumentsWeeker(
+    context: Context,
+    dayFolder: String,
+    fileName: String,
+    mimeType: String,
+    bytes: ByteArray
+) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val relativePath = "${Environment.DIRECTORY_DOCUMENTS}/Weeker/$dayFolder/"
+        val collection = MediaStore.Files.getContentUri("external")
+        val resolver = context.contentResolver
+
+        findMediaFile(resolver = resolver, collection = collection, fileName = fileName, relativePath = relativePath)
+            ?.let { resolver.delete(it, null, null) }
+
+        val values = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+            put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+            put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
+        }
+        val uri = resolver.insert(collection, values)
+            ?: throw IllegalStateException("Cannot create backup file: $fileName")
+        resolver.openOutputStream(uri)?.use { output ->
+            output.write(bytes)
+        } ?: throw IllegalStateException("Cannot write backup file: $fileName")
+        val finalize = ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }
+        resolver.update(uri, finalize, null, null)
+    } else {
+        @Suppress("DEPRECATION")
+        val documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+        val targetDir = File(documentsDir, "Weeker/$dayFolder")
+        if (!targetDir.exists()) targetDir.mkdirs()
+        val targetFile = File(targetDir, fileName)
+        targetFile.writeBytes(bytes)
+    }
+}
+
+private fun findMediaFile(
+    resolver: android.content.ContentResolver,
+    collection: Uri,
+    fileName: String,
+    relativePath: String
+): Uri? {
+    val projection = arrayOf(MediaStore.MediaColumns._ID)
+    val selection = "${MediaStore.MediaColumns.DISPLAY_NAME} = ? AND ${MediaStore.MediaColumns.RELATIVE_PATH} = ?"
+    val selectionArgs = arrayOf(fileName, relativePath)
+    resolver.query(collection, projection, selection, selectionArgs, null)?.use { cursor ->
+        if (cursor.moveToFirst()) {
+            val id = cursor.getLong(0)
+            return ContentUris.withAppendedId(collection, id)
+        }
+    }
+    return null
+}
+
+private fun cleanupLegacyJsonBackups(root: File) {
+    val legacyDir = File(root, "backups")
+    if (!legacyDir.exists()) return
+    legacyDir.listFiles()
+        ?.filter { it.isFile && it.extension.lowercase(Locale.US) == "json" }
+        ?.forEach { it.delete() }
+}
+
+private data class DbBackupRef(
+    val label: String,
+    val uri: Uri? = null,
+    val file: File? = null,
+    val modifiedAtSeconds: Long = 0L
+)
+
+private fun listDbBackups(context: Context): List<DbBackupRef> {
+    val backups = mutableListOf<DbBackupRef>()
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val collection = MediaStore.Files.getContentUri("external")
+        val projection = arrayOf(
+            MediaStore.MediaColumns._ID,
+            MediaStore.MediaColumns.DISPLAY_NAME,
+            MediaStore.MediaColumns.RELATIVE_PATH,
+            MediaStore.MediaColumns.DATE_MODIFIED
+        )
+        val selection = "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ? AND ${MediaStore.MediaColumns.DISPLAY_NAME} LIKE ?"
+        val selectionArgs = arrayOf("${Environment.DIRECTORY_DOCUMENTS}/Weeker/%", "%.db")
+        context.contentResolver.query(
+            collection,
+            projection,
+            selection,
+            selectionArgs,
+            "${MediaStore.MediaColumns.DATE_MODIFIED} DESC"
+        )?.use { cursor ->
+            val idIdx = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+            val nameIdx = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME)
+            val pathIdx = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.RELATIVE_PATH)
+            val modifiedIdx = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED)
+            while (cursor.moveToNext()) {
+                val id = cursor.getLong(idIdx)
+                val displayName = cursor.getString(nameIdx)
+                val relativePath = cursor.getString(pathIdx) ?: ""
+                val modified = cursor.getLong(modifiedIdx)
+                val folder = relativePath.substringAfter("Weeker/").trim('/').ifBlank { "unknown" }
+                backups += DbBackupRef(
+                    label = "$folder/$displayName",
+                    uri = ContentUris.withAppendedId(collection, id),
+                    modifiedAtSeconds = modified
+                )
+            }
+        }
+    } else {
+        @Suppress("DEPRECATION")
+        val documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+        val root = File(documentsDir, "Weeker")
+        if (root.exists()) {
+            root.listFiles()
+                ?.filter { it.isDirectory && it.name.startsWith("w") }
+                ?.forEach { folder ->
+                    folder.listFiles()
+                        ?.filter { it.isFile && it.extension.lowercase(Locale.US) == "db" }
+                        ?.forEach { dbFile ->
+                            backups += DbBackupRef(
+                                label = "${folder.name}/${dbFile.name}",
+                                file = dbFile,
+                                modifiedAtSeconds = dbFile.lastModified() / 1000L
+                            )
+                        }
+                }
+        }
+    }
+    return backups.sortedByDescending { it.modifiedAtSeconds }
+}
+
+private fun readEventsFromDbBackup(context: Context, backup: DbBackupRef): List<EventEntity> {
+    val tempDb = File.createTempFile("weeker_restore_", ".db", context.cacheDir)
+    try {
+        when {
+            backup.uri != null -> {
+                context.contentResolver.openInputStream(backup.uri)?.use { input ->
+                    tempDb.outputStream().use { output -> input.copyTo(output) }
+                } ?: throw IllegalStateException("Cannot open backup uri")
+            }
+            backup.file != null -> {
+                backup.file.copyTo(tempDb, overwrite = true)
+            }
+            else -> throw IllegalStateException("Backup source is missing")
+        }
+
+        val db = SQLiteDatabase.openDatabase(tempDb.absolutePath, null, SQLiteDatabase.OPEN_READONLY)
+        try {
+            val events = mutableListOf<EventEntity>()
+            val cursor = db.query(
+                "events",
+                arrayOf("id", "title", "note", "dateEpochDay", "isDone", "sortOrder"),
+                null,
+                null,
+                null,
+                null,
+                "dateEpochDay ASC, sortOrder ASC, id ASC"
+            )
+            cursor.use {
+                val idIdx = it.getColumnIndexOrThrow("id")
+                val titleIdx = it.getColumnIndexOrThrow("title")
+                val noteIdx = it.getColumnIndexOrThrow("note")
+                val dayIdx = it.getColumnIndexOrThrow("dateEpochDay")
+                val doneIdx = it.getColumnIndexOrThrow("isDone")
+                val sortIdx = it.getColumnIndexOrThrow("sortOrder")
+                while (it.moveToNext()) {
+                    events += EventEntity(
+                        id = it.getLong(idIdx),
+                        title = it.getString(titleIdx) ?: "",
+                        note = it.getString(noteIdx) ?: "",
+                        dateEpochDay = it.getLong(dayIdx),
+                        isDone = it.getInt(doneIdx) != 0,
+                        sortOrder = it.getInt(sortIdx)
+                    )
+                }
+            }
+            return events
+        } finally {
+            db.close()
+        }
+    } catch (e: SQLiteException) {
+        throw IllegalStateException("Invalid backup db format", e)
+    } finally {
+        tempDb.delete()
+    }
 }

@@ -11,7 +11,12 @@ class EventRepository(private val dao: EventDao) {
     fun observeWeek(weekStartEpochDay: Long): Flow<List<EventEntity>> =
         dao.observeByWeek(weekStartEpochDay, weekStartEpochDay + 6)
 
+    private fun requireNotPast(epochDay: Long) {
+        require(epochDay >= LocalDate.now().toEpochDay()) { "Past dates are not allowed" }
+    }
+
     suspend fun addEvent(title: String, note: String, epochDay: Long) {
+        requireNotPast(epochDay)
         val sortOrder = dao.countByDay(epochDay) + 1
         dao.insert(
             EventEntity(
@@ -33,11 +38,13 @@ class EventRepository(private val dao: EventDao) {
     }
 
     suspend fun moveEventToDate(entity: EventEntity, newEpochDay: Long) {
+        requireNotPast(newEpochDay)
         val sortOrder = dao.countByDay(newEpochDay) + 1
         dao.update(entity.copy(dateEpochDay = newEpochDay, sortOrder = sortOrder))
     }
 
     suspend fun copyEventToDate(entity: EventEntity, newEpochDay: Long) {
+        requireNotPast(newEpochDay)
         val sortOrder = dao.countByDay(newEpochDay) + 1
         dao.insert(
             entity.copy(
