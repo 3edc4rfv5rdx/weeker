@@ -2,6 +2,9 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
+## 0.5.20260309+92
+- N Calendar picker context-aware: opens week from week screen, day from day screen
+
 ## 0.5.20260309+91
 - F Move "today" button to the left in week screen
 

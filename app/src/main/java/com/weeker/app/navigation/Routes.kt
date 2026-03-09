@@ -4,7 +4,10 @@ object Routes {
     const val ONBOARDING = "onboarding"
     const val TODAY = "today"
     const val SETTINGS = "settings"
-    const val WEEK_PICKER = "week_picker"
+    const val WEEK_PICKER = "week_picker/{pickerMode}"
+    const val PICKER_MODE_ARG = "pickerMode"
+
+    fun weekPickerRoute(mode: String = "day") = "week_picker/$mode"
 
     const val WEEK = "week/{weekStart}"
     const val WEEK_ARG = "weekStart"

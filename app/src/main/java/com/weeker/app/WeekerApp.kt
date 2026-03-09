@@ -270,7 +270,7 @@ fun WeekerApp(container: AppContainer) {
                         val monday = EventRepository.mondayStart(today)
                         navController.navigate(Routes.weekRoute(monday))
                     },
-                    onOpenWeekPicker = { navController.navigate(Routes.WEEK_PICKER) }
+                    onOpenWeekPicker = { navController.navigate(Routes.weekPickerRoute("day")) }
                 )
             }
 
@@ -301,7 +301,7 @@ fun WeekerApp(container: AppContainer) {
                     onAddEvent = { day -> navController.navigate(Routes.eventEditRoute(day)) },
                     onOpenDay = { day -> navController.navigate(Routes.dayRoute(day)) },
                     onOpenToday = { navController.navigate(Routes.TODAY) },
-                    onOpenWeekPicker = { navController.navigate(Routes.WEEK_PICKER) },
+                    onOpenWeekPicker = { navController.navigate(Routes.weekPickerRoute("week")) },
                     onPrevWeek = { navController.navigate(Routes.weekRoute(start - 7)) },
                     onNextWeek = { navController.navigate(Routes.weekRoute(start + 7)) }
                 )
@@ -343,7 +343,7 @@ fun WeekerApp(container: AppContainer) {
                         val monday = EventRepository.mondayStart(dayDate)
                         navController.navigate(Routes.weekRoute(monday))
                     },
-                    onOpenWeekPicker = { navController.navigate(Routes.WEEK_PICKER) }
+                    onOpenWeekPicker = { navController.navigate(Routes.weekPickerRoute("day")) }
                 )
             }
 
@@ -393,12 +393,21 @@ fun WeekerApp(container: AppContainer) {
                 )
             }
 
-            composable(Routes.WEEK_PICKER) {
+            composable(
+                route = Routes.WEEK_PICKER,
+                arguments = listOf(navArgument(Routes.PICKER_MODE_ARG) { type = NavType.StringType })
+            ) { backStackEntry ->
+                val pickerMode = backStackEntry.arguments?.getString(Routes.PICKER_MODE_ARG) ?: "day"
                 WeekPickerScreen(
                     t = ::t,
                     languageCode = selectedLanguage,
                     onPick = { date ->
-                        navController.navigate(Routes.dayRoute(date.toEpochDay()))
+                        if (pickerMode == "week") {
+                            val monday = EventRepository.mondayStart(date)
+                            navController.navigate(Routes.weekRoute(monday))
+                        } else {
+                            navController.navigate(Routes.dayRoute(date.toEpochDay()))
+                        }
                     },
                     onBackArrow = ::goBack,
                     onCancel = ::goBack,
