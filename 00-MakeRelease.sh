@@ -3,4 +3,5 @@ set -e
 
 ./gradlew :app:assembleRelease
 
-echo "Release APK: app/build/outputs/apk/release/app-release.apk"
+echo "Release APKs: app/build/outputs/apk/release/"
+ls -1 app/build/outputs/apk/release/*.apk 2>/dev/null

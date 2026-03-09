@@ -3,4 +3,5 @@ set -e
 
 ./gradlew :app:assembleDebug
 
-echo "Debug APK: app/build/outputs/apk/debug/app-debug.apk"
+echo "Debug APKs: app/build/outputs/apk/debug/"
+ls -1 app/build/outputs/apk/debug/app-*.apk 2>/dev/null

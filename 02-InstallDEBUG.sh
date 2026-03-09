@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-apk="app/build/outputs/apk/debug/app-debug.apk"
+apk="app/build/outputs/apk/debug/app-x86_64-debug.apk"
 serial="${1:-emulator-5554}"
 
 if [ ! -f "$apk" ]; then
