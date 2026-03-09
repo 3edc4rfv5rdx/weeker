@@ -134,18 +134,18 @@ fun WeekScreen(
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             WeekerButton(
-                text = t("calendar"),
-                onClick = onOpenWeekPicker,
-                modifier = Modifier.weight(1f),
-                containerColor = currentWeekStateColor.container,
-                contentColor = currentWeekStateColor.content
-            )
-            WeekerButton(
                 text = t("today"),
                 onClick = onOpenToday,
                 modifier = Modifier.weight(1f),
                 containerColor = currentColor.container,
                 contentColor = currentColor.content
+            )
+            WeekerButton(
+                text = t("calendar"),
+                onClick = onOpenWeekPicker,
+                modifier = Modifier.weight(1f),
+                containerColor = currentWeekStateColor.container,
+                contentColor = currentWeekStateColor.content
             )
         }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxSize()) {

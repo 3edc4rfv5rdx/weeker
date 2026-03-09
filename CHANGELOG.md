@@ -2,6 +2,9 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
+## 0.5.20260309+91
+- F Move "today" button to the left in week screen
+
 ## 0.5.20260309+89
 - N Calendar picker opens day view instead of week
 - F Add "today" button in day view, shorten "add event" to "add"
