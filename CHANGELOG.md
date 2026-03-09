@@ -2,6 +2,9 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
+## 0.5.20260309+93
+- F Close (x) button instead of back arrow on today screen
+
 ## 0.5.20260309+92
 - N Calendar picker context-aware: opens week from week screen, day from day screen
 

@@ -9,6 +9,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -78,7 +82,17 @@ fun TodayScreen(
                 modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                WeekerBackButton(onClick = onBack)
+                if (isToday) {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Close",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                } else {
+                    WeekerBackButton(onClick = onBack)
+                }
                 val headerLabel = if (isToday) t("today").titleCaseFirst() else {
                     val dayKey = dayNameKey(displayDate.dayOfWeek.value)
                     t(dayKey).titleCaseFirst()
