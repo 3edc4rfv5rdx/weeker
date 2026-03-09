@@ -2,6 +2,12 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
+## 0.5.20260309+111
+- I ABI splits: universal + arm64-v8a/armeabi-v7a/x86_64 APKs
+- I Enable minify, shrink resources, compress native .so libs
+- I Auto-increment build number, release APK renaming
+- F Update launcher icons and manifest references
+
 ## 0.5.20260309+108
 - N Add "Exit" menu item to app menu on all screens
 

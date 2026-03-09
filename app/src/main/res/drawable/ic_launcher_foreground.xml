@@ -5,6 +5,6 @@
     android:insetRight="0%"
     android:insetBottom="0%">
     <bitmap
-        android:gravity="center"
+        android:gravity="fill"
         android:src="@drawable/ic_launcher_foreground_image" />
 </inset>

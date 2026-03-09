@@ -1,4 +1,6 @@
 import java.io.File
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Properties
 
 plugins {
@@ -22,6 +24,43 @@ val keyStoreFile = (keyProperties["storeFile"] as String?)?.let { rawPath ->
     if (candidate.isAbsolute) candidate else File(keyPropertiesFile.parentFile, rawPath)
 }
 
+val buildNumberFile = rootProject.file("build_number.txt")
+val buildMetaRaw = buildNumberFile.takeIf { it.exists() }?.readText()?.trim().orEmpty()
+val buildMetaMap = buildMetaRaw.lineSequence()
+    .map { it.trim() }
+    .filter { it.contains("=") }
+    .associate { line ->
+        val key = line.substringBefore("=").trim()
+        val value = line.substringAfter("=").trim()
+        key to value
+    }
+val isBuildInvocation = gradle.startParameter.taskNames.any { task ->
+    val name = task.lowercase()
+    name.contains("assemble") || name.contains("bundle") || name.contains("install")
+}
+val storedBuildNumber = run {
+    val direct = buildMetaRaw.toIntOrNull()
+    if (direct != null) {
+        direct
+    } else {
+        buildMetaMap["build"]?.toIntOrNull()
+            ?: 32
+    }
+}
+val buildNumber = if (isBuildInvocation) storedBuildNumber + 1 else storedBuildNumber.coerceAtLeast(33)
+val baseVersion = buildMetaMap["base_version"]?.ifBlank { "0.5" } ?: "0.5"
+val versionDate = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE)
+val computedVersionName = "$baseVersion.$versionDate"
+if (isBuildInvocation) {
+    buildNumberFile.writeText(
+        """
+        base_version=$baseVersion
+        build=$buildNumber
+        version=$computedVersionName
+        """.trimIndent() + "\n"
+    )
+}
+
 android {
     namespace = "com.weeker.app"
     compileSdk = 34
@@ -30,8 +69,8 @@ android {
         applicationId = "com.weeker.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = buildNumber
+        versionName = computedVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -52,13 +91,23 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             isDebuggable = false
             signingConfig = signingConfigs.findByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+    }
+
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a", "x86_64")
+            isUniversalApk = true
         }
     }
 
@@ -73,6 +122,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
@@ -83,6 +133,51 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
+}
+
+abstract class RenameReleaseApks : DefaultTask() {
+    @get:org.gradle.api.tasks.Input
+    abstract val versionName: Property<String>
+
+    @get:org.gradle.api.tasks.Input
+    abstract val versionCode: Property<Int>
+
+    @get:org.gradle.api.tasks.Internal
+    abstract val outputDir: DirectoryProperty
+
+    @org.gradle.api.tasks.TaskAction
+    fun rename() {
+        val outDir = outputDir.get().asFile
+        val prefix = "weeker-${versionName.get()}+${versionCode.get()}-release"
+        val mappings = mapOf(
+            "app-universal-release.apk" to "$prefix-universal.apk",
+            "app-arm64-v8a-release.apk" to "$prefix-arm64-v8a.apk",
+            "app-armeabi-v7a-release.apk" to "$prefix-armeabi-v7a.apk",
+            "app-x86_64-release.apk" to "$prefix-x86_64.apk"
+        )
+        mappings.forEach { (srcName, dstName) ->
+            val src = File(outDir, srcName)
+            if (!src.exists()) return@forEach
+            val dst = File(outDir, dstName)
+            if (dst.exists()) dst.delete()
+            src.renameTo(dst)
+        }
+    }
+}
+
+val renameReleaseApks by tasks.registering(RenameReleaseApks::class) {
+    versionName.set(computedVersionName)
+    versionCode.set(buildNumber)
+    outputDir.set(layout.buildDirectory.dir("outputs/apk/release"))
+}
+
+tasks.configureEach {
+    if (name == "assembleRelease") {
+        finalizedBy(renameReleaseApks)
     }
 }
 

@@ -36,4 +36,4 @@ Weekly planner for Android. Simple, lightweight, offline-first.
 
 ## License
 
-Private project.
+Public project.
