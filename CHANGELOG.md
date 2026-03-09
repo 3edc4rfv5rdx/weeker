@@ -11,6 +11,9 @@
 ## 0.5.20260309+94
 - N Drag handle for reordering events within day in week view
 
+## 0.5.20260309+98
+- F Shorten edit screen header to just "Edit"
+
 ## 0.5.20260309+97
 - N Edit event from long-press context menu (all screens)
 

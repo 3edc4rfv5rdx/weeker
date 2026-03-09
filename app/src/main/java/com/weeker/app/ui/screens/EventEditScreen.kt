@@ -61,7 +61,7 @@ fun EventEditScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 WeekerBackButton(onClick = onBack)
-                Text(text = t(if (isEdit) "edit event" else "add event").titleCaseFirst(), fontSize = 30.sp)
+                Text(text = t(if (isEdit) "edit" else "add event").titleCaseFirst(), fontSize = 30.sp)
             }
             AppMenuButton(
                 t = t,
