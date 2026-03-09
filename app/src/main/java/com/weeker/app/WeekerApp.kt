@@ -265,6 +265,7 @@ fun WeekerApp(container: AppContainer) {
                         scope.launch { container.eventRepository.moveEventDownInToday(target) }
                     },
                     onAddEvent = { navController.navigate(Routes.eventEditRoute(todayEpochDay)) },
+                    onOpenToday = {},
                     onOpenWeek = {
                         val monday = EventRepository.mondayStart(today)
                         navController.navigate(Routes.weekRoute(monday))
@@ -336,6 +337,7 @@ fun WeekerApp(container: AppContainer) {
                         scope.launch { container.eventRepository.moveEventDownInToday(target) }
                     },
                     onAddEvent = { navController.navigate(Routes.eventEditRoute(dayEpoch)) },
+                    onOpenToday = { navController.navigate(Routes.TODAY) },
                     onOpenWeek = {
                         val dayDate = LocalDate.ofEpochDay(dayEpoch)
                         val monday = EventRepository.mondayStart(dayDate)
@@ -396,8 +398,7 @@ fun WeekerApp(container: AppContainer) {
                     t = ::t,
                     languageCode = selectedLanguage,
                     onPick = { date ->
-                        val monday = EventRepository.mondayStart(date)
-                        navController.navigate(Routes.weekRoute(monday))
+                        navController.navigate(Routes.dayRoute(date.toEpochDay()))
                     },
                     onBackArrow = ::goBack,
                     onCancel = ::goBack,

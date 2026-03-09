@@ -50,6 +50,7 @@ fun TodayScreen(
     onMoveEventUp: (EventEntity) -> Unit,
     onMoveEventDown: (EventEntity) -> Unit,
     onAddEvent: () -> Unit,
+    onOpenToday: () -> Unit,
     onOpenWeek: () -> Unit,
     onOpenWeekPicker: () -> Unit
 ) {
@@ -104,7 +105,12 @@ fun TodayScreen(
             WeekerButton(text = t("week"), onClick = onOpenWeek, modifier = Modifier.weight(1f))
             WeekerButton(text = t("calendar"), onClick = onOpenWeekPicker, modifier = Modifier.weight(1f))
         }
-        WeekerButton(text = t("add event"), onClick = onAddEvent, modifier = Modifier.fillMaxWidth())
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            if (!isToday) {
+                WeekerButton(text = t("today"), onClick = onOpenToday, modifier = Modifier.weight(1f))
+            }
+            WeekerButton(text = t("add"), onClick = onAddEvent, modifier = Modifier.weight(1f))
+        }
 
         if (orderedEvents.isEmpty()) {
             Text(text = t("no events"), fontSize = 22.sp)

@@ -2,6 +2,11 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
+## 0.5.20260309+89
+- N Calendar picker opens day view instead of week
+- F Add "today" button in day view, shorten "add event" to "add"
+- F Slightly increase compact row height and font size
+
 ## 0.5.20260309+87
 - N Navigate to day view by tapping day label in week screen
 

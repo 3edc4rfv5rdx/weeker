@@ -55,10 +55,10 @@ fun EventRow(
     val menuBg = Color(0xFFE9DDF8)
     val menuText = Color(0xFF111111)
     val rowBg = containerColor ?: MaterialTheme.colorScheme.surface
-    val rowPadding = if (compact) 3.dp else 10.dp
-    val titleSize = if (compact) 15.sp else 22.sp
-    val noteSize = if (compact) 12.sp else 16.sp
-    val rowSpacing = if (compact) 4.dp else 10.dp
+    val rowPadding = if (compact) 5.dp else 10.dp
+    val titleSize = if (compact) 17.sp else 22.sp
+    val noteSize = if (compact) 13.sp else 16.sp
+    val rowSpacing = if (compact) 5.dp else 10.dp
 
     Box {
         Row(
