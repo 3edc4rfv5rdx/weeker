@@ -2,6 +2,9 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
+## 0.5.20260309+96
+- F Fix multi-position drag in week view (preserve composition identity)
+
 ## 0.5.20260309+95
 - F Prevent long press on drag handle from opening context menu
 

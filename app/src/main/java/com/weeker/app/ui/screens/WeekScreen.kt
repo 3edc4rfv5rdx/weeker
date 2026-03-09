@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
@@ -198,7 +199,7 @@ fun WeekScreen(
                     val orderedDayEvents = dayEvents.sortedWith(compareBy<EventEntity> { it.isDone }.thenBy { it.sortOrder }.thenBy { it.id })
                     val firstDone = orderedDayEvents.indexOfFirst { it.isDone }
                     val undoneCount = if (firstDone == -1) orderedDayEvents.size else firstDone
-                    orderedDayEvents.forEachIndexed { index, event ->
+                    orderedDayEvents.forEachIndexed { index, event -> key(event.id) {
                         EventRow(
                             event = event,
                             t = t,
@@ -213,7 +214,7 @@ fun WeekScreen(
                             compact = true,
                             containerColor = if (index % 2 == 0) dayEventColorA else dayEventColorB
                         )
-                    }
+                    } }
                 }
             }
         }
