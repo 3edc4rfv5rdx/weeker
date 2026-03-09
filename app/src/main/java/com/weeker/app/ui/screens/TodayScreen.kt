@@ -101,11 +101,11 @@ fun TodayScreen(
                     t(dayKey).titleCaseFirst()
                 }
                 Text(text = buildAnnotatedString {
-                    withStyle(SpanStyle(fontSize = 34.sp, color = MaterialTheme.colorScheme.onBackground)) {
+                    withStyle(SpanStyle(fontSize = 26.sp, color = MaterialTheme.colorScheme.onBackground)) {
                         append(headerLabel)
                         append(" ")
                     }
-                    withStyle(SpanStyle(fontSize = 22.sp, color = MaterialTheme.colorScheme.onBackground)) {
+                    withStyle(SpanStyle(fontSize = 18.sp, color = MaterialTheme.colorScheme.onBackground)) {
                         append(todayText)
                     }
                 })

@@ -440,8 +440,10 @@ fun WeekerApp(container: AppContainer) {
                 arguments = listOf(navArgument(Routes.PICKER_MODE_ARG) { type = NavType.StringType })
             ) { backStackEntry ->
                 val pickerMode = backStackEntry.arguments?.getString(Routes.PICKER_MODE_ARG) ?: "day"
+                val pickerTitle = if (pickerMode == "week") t("week").titleCaseFirst() else t("day").titleCaseFirst()
                 WeekPickerScreen(
                     t = ::t,
+                    title = pickerTitle,
                     languageCode = selectedLanguage,
                     onPick = { date ->
                         if (pickerMode == "week") {
@@ -542,6 +544,7 @@ fun WeekerApp(container: AppContainer) {
 @Composable
 private fun WeekPickerScreen(
     t: (String) -> String,
+    title: String,
     languageCode: String,
     onPick: (LocalDate) -> Unit,
     onBackArrow: () -> Unit,
@@ -568,7 +571,7 @@ private fun WeekPickerScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 WeekerBackButton(onClick = onBackArrow)
-                Text(text = t("select week").titleCaseFirst())
+                Text(text = title, fontSize = 26.sp)
             }
             AppMenuButton(
                 t = t,

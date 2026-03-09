@@ -99,7 +99,7 @@ fun WeekScreen(
                         )
                         Text(
                             text = weekRange,
-                            fontSize = 22.sp,
+                            fontSize = 18.sp,
                             color = currentWeekStateColor.content,
                             modifier = Modifier.padding(horizontal = 6.dp)
                         )

@@ -2,14 +2,9 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
-## 0.5.20260309+96
-- F Fix multi-position drag in week view (preserve composition identity)
-
-## 0.5.20260309+95
-- F Prevent long press on drag handle from opening context menu
-
-## 0.5.20260309+94
-- N Drag handle for reordering events within day in week view
+## 0.5.20260309+103
+- F Reduce and align title font sizes across today/week/calendar screens
+- F Calendar picker title shows "Day" or "Week" based on context
 
 ## 0.5.20260309+101
 - F Reduce week screen title font size
@@ -22,6 +17,15 @@
 
 ## 0.5.20260309+97
 - N Edit event from long-press context menu (all screens)
+
+## 0.5.20260309+96
+- F Fix multi-position drag in week view (preserve composition identity)
+
+## 0.5.20260309+95
+- F Prevent long press on drag handle from opening context menu
+
+## 0.5.20260309+94
+- N Drag handle for reordering events within day in week view
 
 ## 0.5.20260309+93
 - F Close (x) button instead of back arrow on today screen
