@@ -52,6 +52,8 @@ fun WeekScreen(
     onDeleteEvent: (EventEntity) -> Unit,
     onMoveEvent: (EventEntity) -> Unit,
     onCopyEvent: (EventEntity) -> Unit,
+    onMoveEventUp: (EventEntity) -> Unit,
+    onMoveEventDown: (EventEntity) -> Unit,
     onAddEvent: (Long) -> Unit,
     onOpenDay: (Long) -> Unit,
     onOpenToday: () -> Unit,
@@ -193,7 +195,10 @@ fun WeekScreen(
                     if (dayEvents.isEmpty()) {
                         Text(text = t("no events"), fontSize = 18.sp)
                     }
-                    dayEvents.forEachIndexed { index, event ->
+                    val orderedDayEvents = dayEvents.sortedWith(compareBy<EventEntity> { it.isDone }.thenBy { it.sortOrder }.thenBy { it.id })
+                    val firstDone = orderedDayEvents.indexOfFirst { it.isDone }
+                    val undoneCount = if (firstDone == -1) orderedDayEvents.size else firstDone
+                    orderedDayEvents.forEachIndexed { index, event ->
                         EventRow(
                             event = event,
                             t = t,
@@ -201,6 +206,10 @@ fun WeekScreen(
                             onDelete = onDeleteEvent,
                             onMoveTo = onMoveEvent,
                             onCopyTo = onCopyEvent,
+                            onMoveUp = if (!event.isDone) ({ onMoveEventUp(event) }) else null,
+                            onMoveDown = if (!event.isDone) ({ onMoveEventDown(event) }) else null,
+                            moveUpEnabled = !event.isDone && index > 0,
+                            moveDownEnabled = !event.isDone && index < undoneCount - 1,
                             compact = true,
                             containerColor = if (index % 2 == 0) dayEventColorA else dayEventColorB
                         )

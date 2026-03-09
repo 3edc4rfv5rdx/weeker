@@ -2,6 +2,9 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
+## 0.5.20260309+94
+- N Drag handle for reordering events within day in week view
+
 ## 0.5.20260309+93
 - F Close (x) button instead of back arrow on today screen
 

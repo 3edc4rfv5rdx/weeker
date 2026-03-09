@@ -298,6 +298,12 @@ fun WeekerApp(container: AppContainer) {
                     },
                     onMoveEvent = { moveEventTarget = it },
                     onCopyEvent = { copyEventTarget = it },
+                    onMoveEventUp = { target ->
+                        scope.launch { container.eventRepository.moveEventUpInToday(target) }
+                    },
+                    onMoveEventDown = { target ->
+                        scope.launch { container.eventRepository.moveEventDownInToday(target) }
+                    },
                     onAddEvent = { day -> navController.navigate(Routes.eventEditRoute(day)) },
                     onOpenDay = { day -> navController.navigate(Routes.dayRoute(day)) },
                     onOpenToday = { navController.navigate(Routes.TODAY) },
