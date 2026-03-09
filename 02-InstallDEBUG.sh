@@ -1,11 +1,11 @@
 #!/bin/sh
 set -e
 
-apk="app/build/outputs/apk/debug/app-x86_64-debug.apk"
 serial="${1:-emulator-5554}"
+apk=$(ls -t app/build/outputs/apk/debug/*x86_64*.apk 2>/dev/null | head -1)
 
-if [ ! -f "$apk" ]; then
-  echo "Debug APK not found. Build first: ./01-MakeDebug.sh"
+if [ -z "$apk" ]; then
+  echo "Debug x86_64 APK not found. Build first: ./01-MakeDebug.sh"
   exit 1
 fi
 
