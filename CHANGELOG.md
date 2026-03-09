@@ -2,6 +2,10 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
+## 0.5.20260309+107
+- E Show event notes in compact mode (day and week views)
+- F Set compact font size to 18sp for title and note
+
 ## 0.5.20260309+103
 - F Reduce and align title font sizes across today/week/calendar screens
 - F Calendar picker title shows "Day" or "Week" based on context

@@ -59,8 +59,8 @@ fun EventRow(
     val menuText = if (isLight) Color(0xFF111111) else Color(0xFFE8E0F0)
     val rowBg = containerColor ?: MaterialTheme.colorScheme.surface
     val rowPadding = if (compact) 5.dp else 10.dp
-    val titleSize = if (compact) 17.sp else 22.sp
-    val noteSize = if (compact) 13.sp else 16.sp
+    val titleSize = if (compact) 18.sp else 22.sp
+    val noteSize = if (compact) titleSize else 16.sp
     val rowSpacing = if (compact) 5.dp else 10.dp
 
     Box {
@@ -96,12 +96,14 @@ fun EventRow(
                     maxLines = if (compact) 1 else Int.MAX_VALUE,
                     overflow = if (compact) TextOverflow.Ellipsis else TextOverflow.Clip
                 )
-                if (event.note.isNotBlank() && !compact) {
+                if (event.note.isNotBlank()) {
                     Text(
                         text = event.note,
                         fontSize = noteSize,
                         color = MaterialTheme.colorScheme.onSurface,
-                        textDecoration = if (event.isDone) TextDecoration.LineThrough else TextDecoration.None
+                        textDecoration = if (event.isDone) TextDecoration.LineThrough else TextDecoration.None,
+                        maxLines = if (compact) 1 else Int.MAX_VALUE,
+                        overflow = if (compact) TextOverflow.Ellipsis else TextOverflow.Clip
                     )
                 }
             }
