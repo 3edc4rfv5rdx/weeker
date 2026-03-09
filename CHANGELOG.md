@@ -1,11 +1,12 @@
 # Changelog
 
-> N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
+> N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
 ## 0.5.20260309+112
 - I Add LICENSE and icon source file
 - I Auto-detect APK names in install scripts
 - I Remove redundant 03-InstallToEmul script
+- T Tag v0.5.20260309+112
 
 ## 0.5.20260309+111
 - I ABI splits: universal + arm64-v8a/armeabi-v7a/x86_64 APKs
