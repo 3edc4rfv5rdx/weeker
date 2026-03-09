@@ -9,10 +9,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.ui.components.AppMenuButton
@@ -36,6 +39,9 @@ fun EventEditScreen(
     val title = remember { mutableStateOf("") }
     val note = remember { mutableStateOf("") }
     val isPastDay = epochDay < LocalDate.now().toEpochDay()
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     Column(
         modifier = Modifier
@@ -67,7 +73,7 @@ fun EventEditScreen(
             value = title.value,
             onValueChange = { title.value = it },
             label = { Text(t("event title")) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
             singleLine = true
         )
         OutlinedTextField(

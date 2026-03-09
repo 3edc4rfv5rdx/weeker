@@ -30,17 +30,31 @@ class EventRepository(private val dao: EventDao) {
     }
 
     suspend fun toggleDone(entity: EventEntity, value: Boolean) {
-        dao.update(entity.copy(isDone = value))
+        val dayEvents = loadDayInTodayOrder(entity.dateEpochDay).toMutableList()
+        val currentIndex = dayEvents.indexOfFirst { it.id == entity.id }
+        if (currentIndex == -1) return
+
+        val updated = dayEvents.removeAt(currentIndex).copy(isDone = value)
+        val targetIndex = if (value) {
+            dayEvents.size
+        } else {
+            dayEvents.indexOfFirst { it.isDone }.let { index -> if (index == -1) dayEvents.size else index }
+        }
+        dayEvents.add(targetIndex, updated)
+        persistDayOrder(dayEvents)
     }
 
     suspend fun deleteEvent(entity: EventEntity) {
         dao.delete(entity)
+        normalizeDayOrder(entity.dateEpochDay)
     }
 
     suspend fun moveEventToDate(entity: EventEntity, newEpochDay: Long) {
         requireNotPast(newEpochDay)
+        val oldEpochDay = entity.dateEpochDay
         val sortOrder = dao.countByDay(newEpochDay) + 1
         dao.update(entity.copy(dateEpochDay = newEpochDay, sortOrder = sortOrder))
+        normalizeDayOrder(oldEpochDay)
     }
 
     suspend fun copyEventToDate(entity: EventEntity, newEpochDay: Long) {
@@ -56,17 +70,28 @@ class EventRepository(private val dao: EventDao) {
         )
     }
 
-    suspend fun moveUndoneToNextWeek(weekStartEpochDay: Long) {
-        val undone = dao.getUndoneByWeek(weekStartEpochDay, weekStartEpochDay + 6)
-        undone.forEach { item ->
-            dao.insert(
-                item.copy(
-                    id = 0,
-                    dateEpochDay = item.dateEpochDay + 7,
-                    isDone = false
-                )
-            )
-        }
+    suspend fun moveEventUpInToday(entity: EventEntity) {
+        if (entity.isDone) return
+        val dayEvents = loadDayInTodayOrder(entity.dateEpochDay).toMutableList()
+        val currentIndex = dayEvents.indexOfFirst { it.id == entity.id }
+        if (currentIndex <= 0) return
+        if (dayEvents[currentIndex - 1].isDone) return
+        val previous = dayEvents[currentIndex - 1]
+        dayEvents[currentIndex - 1] = dayEvents[currentIndex]
+        dayEvents[currentIndex] = previous
+        persistDayOrder(dayEvents)
+    }
+
+    suspend fun moveEventDownInToday(entity: EventEntity) {
+        if (entity.isDone) return
+        val dayEvents = loadDayInTodayOrder(entity.dateEpochDay).toMutableList()
+        val currentIndex = dayEvents.indexOfFirst { it.id == entity.id }
+        if (currentIndex == -1 || currentIndex >= dayEvents.lastIndex) return
+        if (dayEvents[currentIndex + 1].isDone) return
+        val next = dayEvents[currentIndex + 1]
+        dayEvents[currentIndex + 1] = dayEvents[currentIndex]
+        dayEvents[currentIndex] = next
+        persistDayOrder(dayEvents)
     }
 
     suspend fun exportEvents(): List<EventEntity> = dao.getAll()
@@ -75,6 +100,23 @@ class EventRepository(private val dao: EventDao) {
         dao.deleteAll()
         val sanitized = items.map { it.copy(id = 0) }
         dao.insertAll(sanitized)
+    }
+
+    private suspend fun normalizeDayOrder(epochDay: Long) {
+        persistDayOrder(loadDayInTodayOrder(epochDay))
+    }
+
+    private suspend fun loadDayInTodayOrder(epochDay: Long): List<EventEntity> =
+        dao.getByDay(epochDay)
+            .sortedWith(compareBy<EventEntity> { it.isDone }.thenBy { it.sortOrder }.thenBy { it.id })
+
+    private suspend fun persistDayOrder(ordered: List<EventEntity>) {
+        val normalized = ordered.mapIndexed { index, item ->
+            item.copy(sortOrder = index + 1)
+        }
+        if (normalized.isNotEmpty()) {
+            dao.updateAll(normalized)
+        }
     }
 
     companion object {
