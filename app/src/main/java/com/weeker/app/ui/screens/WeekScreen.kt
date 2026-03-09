@@ -24,6 +24,7 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.data.local.EventEntity
@@ -165,8 +166,9 @@ fun WeekScreen(
                     else -> currentColor
                 }
                 val canAdd = day >= todayEpochDay
-                val dayEventColorA = Color(0xFFFFF6CC)
-                val dayEventColorB = Color(0xFFE3F2FD)
+                val isLight = MaterialTheme.colorScheme.surface.luminance() > 0.5f
+                val dayEventColorA = if (isLight) Color(0xFFFFF6CC) else Color(0xFF3A3520)
+                val dayEventColorB = if (isLight) Color(0xFFE3F2FD) else Color(0xFF1C2D3A)
 
                 Column(verticalArrangement = Arrangement.spacedBy(3.dp), modifier = Modifier.fillMaxWidth()) {
                     Row(

@@ -15,7 +15,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.sp
 
 @Composable
@@ -27,8 +29,9 @@ fun AppMenuButton(
     onAbout: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val menuBg = Color(0xFFE9DDF8)
-    val menuText = Color(0xFF111111)
+    val isLight = MaterialTheme.colorScheme.surface.luminance() > 0.5f
+    val menuBg = if (isLight) Color(0xFFE9DDF8) else Color(0xFF2D2640)
+    val menuText = if (isLight) Color(0xFF111111) else Color(0xFFE8E0F0)
 
     Box {
         IconButton(onClick = { expanded = true }) {

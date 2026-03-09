@@ -11,6 +11,9 @@
 ## 0.5.20260309+94
 - N Drag handle for reordering events within day in week view
 
+## 0.5.20260309+100
+- E Fix dark theme: adaptive event row colors, menu colors, about dialog
+
 ## 0.5.20260309+98
 - F Shorten edit screen header to just "Edit"
 

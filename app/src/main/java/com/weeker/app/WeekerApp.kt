@@ -109,8 +109,9 @@ fun WeekerApp(container: AppContainer) {
     val palette = remember(theme, selectedThemeMode) { theme.palette(selectedThemeMode) }
 
     fun t(key: String): String = container.localizationManager.text(key, selectedLanguage)
-    val menuBg = Color(0xFFE9DDF8)
-    val menuText = Color(0xFF111111)
+    val isLight = selectedThemeMode == ThemeMode.LIGHT
+    val menuBg = if (isLight) Color(0xFFE9DDF8) else Color(0xFF2D2640)
+    val menuText = if (isLight) Color(0xFF111111) else Color(0xFFE8E0F0)
     val appTitle = "Weeker"
     val appAuthor = "Eugen"
     val appVersion = BuildConfig.VERSION_NAME

@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,8 +54,9 @@ fun EventRow(
     modifier: Modifier = Modifier
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
-    val menuBg = Color(0xFFE9DDF8)
-    val menuText = Color(0xFF111111)
+    val isLight = MaterialTheme.colorScheme.surface.luminance() > 0.5f
+    val menuBg = if (isLight) Color(0xFFE9DDF8) else Color(0xFF2D2640)
+    val menuText = if (isLight) Color(0xFF111111) else Color(0xFFE8E0F0)
     val rowBg = containerColor ?: MaterialTheme.colorScheme.surface
     val rowPadding = if (compact) 5.dp else 10.dp
     val titleSize = if (compact) 17.sp else 22.sp

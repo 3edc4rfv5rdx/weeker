@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.SpanStyle
@@ -66,8 +67,9 @@ fun TodayScreen(
     val displayDate = LocalDate.ofEpochDay(epochDay)
     val isToday = epochDay == LocalDate.now().toEpochDay()
     val todayText = displayDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
-    val todayEventColorA = Color(0xFFFFF6CC)
-    val todayEventColorB = Color(0xFFE3F2FD)
+    val isLight = MaterialTheme.colorScheme.surface.luminance() > 0.5f
+    val todayEventColorA = if (isLight) Color(0xFFFFF6CC) else Color(0xFF3A3520)
+    val todayEventColorB = if (isLight) Color(0xFFE3F2FD) else Color(0xFF1C2D3A)
 
     Column(
         modifier = Modifier
