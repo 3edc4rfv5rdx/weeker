@@ -197,6 +197,10 @@ fun WeekerApp(container: AppContainer) {
         showAboutDialog = true
     }
 
+    fun onExitFromMenu() {
+        (context as? Activity)?.finish()
+    }
+
     BackHandler {
         exitFromAnyScreenByDoubleTap()
     }
@@ -227,6 +231,7 @@ fun WeekerApp(container: AppContainer) {
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
+                    onExit = ::onExitFromMenu,
                     onSave = { language, mode ->
                         scope.launch {
                             container.settingsRepository.setLanguage(language)
@@ -251,6 +256,7 @@ fun WeekerApp(container: AppContainer) {
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
+                    onExit = ::onExitFromMenu,
                     onToggleDone = { event, checked ->
                         scope.launch { container.eventRepository.toggleDone(event, checked) }
                     },
@@ -292,6 +298,7 @@ fun WeekerApp(container: AppContainer) {
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
+                    onExit = ::onExitFromMenu,
                     onToggleDone = { event, checked ->
                         scope.launch { container.eventRepository.toggleDone(event, checked) }
                     },
@@ -331,6 +338,7 @@ fun WeekerApp(container: AppContainer) {
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
+                    onExit = ::onExitFromMenu,
                     onToggleDone = { event, checked ->
                         scope.launch { container.eventRepository.toggleDone(event, checked) }
                     },
@@ -371,6 +379,7 @@ fun WeekerApp(container: AppContainer) {
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
+                    onExit = ::onExitFromMenu,
                     onSave = { title, note ->
                         scope.launch {
                             container.eventRepository.addEvent(title, note, epochDay)
@@ -402,6 +411,7 @@ fun WeekerApp(container: AppContainer) {
                         onBackup = ::onBackupFromMenu,
                         onRestore = ::onRestoreFromMenu,
                         onAbout = ::onAboutFromMenu,
+                    onExit = ::onExitFromMenu,
                         onSave = { title, note ->
                             scope.launch {
                                 container.eventRepository.updateEvent(event, title, note)
@@ -424,6 +434,7 @@ fun WeekerApp(container: AppContainer) {
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
+                    onExit = ::onExitFromMenu,
                     onSave = { language, mode ->
                         scope.launch {
                             container.settingsRepository.setLanguage(language)
@@ -458,7 +469,8 @@ fun WeekerApp(container: AppContainer) {
                     onOpenSettings = ::onSettingsFromMenu,
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
-                    onAbout = ::onAboutFromMenu
+                    onAbout = ::onAboutFromMenu,
+                    onExit = ::onExitFromMenu
                 )
             }
         }
@@ -552,7 +564,8 @@ private fun WeekPickerScreen(
     onOpenSettings: () -> Unit,
     onBackup: () -> Unit,
     onRestore: () -> Unit,
-    onAbout: () -> Unit
+    onAbout: () -> Unit,
+    onExit: () -> Unit
 ) {
     var selectedEpochDay by remember { mutableLongStateOf(LocalDate.now().toEpochDay()) }
 
@@ -578,7 +591,8 @@ private fun WeekPickerScreen(
                 onSettings = onOpenSettings,
                 onBackup = onBackup,
                 onRestore = onRestore,
-                onAbout = onAbout
+                onAbout = onAbout,
+                onExit = onExit
             )
         }
         MondayDatePicker(

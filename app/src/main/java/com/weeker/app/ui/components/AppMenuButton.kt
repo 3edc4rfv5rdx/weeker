@@ -26,7 +26,8 @@ fun AppMenuButton(
     onSettings: () -> Unit,
     onBackup: () -> Unit,
     onRestore: () -> Unit,
-    onAbout: () -> Unit
+    onAbout: () -> Unit,
+    onExit: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     val isLight = MaterialTheme.colorScheme.surface.luminance() > 0.5f
@@ -72,6 +73,14 @@ fun AppMenuButton(
                 onClick = {
                     expanded = false
                     onAbout()
+                },
+                colors = MenuDefaults.itemColors(textColor = menuText)
+            )
+            DropdownMenuItem(
+                text = { Text(t("exit").titleCaseFirst(), fontSize = 20.sp, color = menuText) },
+                onClick = {
+                    expanded = false
+                    onExit()
                 },
                 colors = MenuDefaults.itemColors(textColor = menuText)
             )

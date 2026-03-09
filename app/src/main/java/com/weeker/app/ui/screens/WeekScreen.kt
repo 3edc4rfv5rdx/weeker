@@ -50,6 +50,7 @@ fun WeekScreen(
     onBackup: () -> Unit,
     onRestore: () -> Unit,
     onAbout: () -> Unit,
+    onExit: () -> Unit,
     onToggleDone: (EventEntity, Boolean) -> Unit,
     onEditEvent: (EventEntity) -> Unit,
     onDeleteEvent: (EventEntity) -> Unit,
@@ -117,7 +118,8 @@ fun WeekScreen(
                     onSettings = onOpenSettings,
                     onBackup = onBackup,
                     onRestore = onRestore,
-                    onAbout = onAbout
+                    onAbout = onAbout,
+                    onExit = onExit
                 )
             }
         }

@@ -2,6 +2,9 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure
 
+## 0.5.20260309+108
+- N Add "Exit" menu item to app menu on all screens
+
 ## 0.5.20260309+107
 - E Show event notes in compact mode (day and week views)
 - F Set compact font size to 18sp for title and note

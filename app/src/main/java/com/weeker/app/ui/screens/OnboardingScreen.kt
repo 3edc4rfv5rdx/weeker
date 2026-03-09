@@ -36,6 +36,7 @@ fun OnboardingScreen(
     onBackup: () -> Unit,
     onRestore: () -> Unit,
     onAbout: () -> Unit,
+    onExit: () -> Unit,
     onSave: (String, ThemeMode) -> Unit
 ) {
     val selectedLanguage = remember { mutableStateOf(currentLanguage) }
@@ -64,7 +65,8 @@ fun OnboardingScreen(
                     onSettings = onOpenSettings,
                     onBackup = onBackup,
                     onRestore = onRestore,
-                    onAbout = onAbout
+                    onAbout = onAbout,
+                    onExit = onExit
                 )
             }
         }

@@ -36,6 +36,7 @@ fun EventEditScreen(
     onBackup: () -> Unit,
     onRestore: () -> Unit,
     onAbout: () -> Unit,
+    onExit: () -> Unit,
     onSave: (String, String) -> Unit,
     onCancel: () -> Unit
 ) {
@@ -68,7 +69,8 @@ fun EventEditScreen(
                 onSettings = onOpenSettings,
                 onBackup = onBackup,
                 onRestore = onRestore,
-                onAbout = onAbout
+                onAbout = onAbout,
+                onExit = onExit
             )
         }
         Text(text = LocalDate.ofEpochDay(epochDay).toString(), fontSize = 20.sp)

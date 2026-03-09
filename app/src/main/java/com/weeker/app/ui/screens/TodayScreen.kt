@@ -48,6 +48,7 @@ fun TodayScreen(
     onBackup: () -> Unit,
     onRestore: () -> Unit,
     onAbout: () -> Unit,
+    onExit: () -> Unit,
     onToggleDone: (EventEntity, Boolean) -> Unit,
     onEditEvent: (EventEntity) -> Unit,
     onDeleteEvent: (EventEntity) -> Unit,
@@ -115,7 +116,8 @@ fun TodayScreen(
                 onSettings = onOpenSettings,
                 onBackup = onBackup,
                 onRestore = onRestore,
-                onAbout = onAbout
+                onAbout = onAbout,
+                onExit = onExit
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
