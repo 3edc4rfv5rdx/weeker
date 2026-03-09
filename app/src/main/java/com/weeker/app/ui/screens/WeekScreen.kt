@@ -94,7 +94,7 @@ fun WeekScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = t("week").titleCaseFirst(),
-                            fontSize = 34.sp,
+                            fontSize = 26.sp,
                             color = currentWeekStateColor.content
                         )
                         Text(
