@@ -163,7 +163,7 @@ fun WeekScreen(
                 val dayEventColorA = Color(0xFFFFF6CC)
                 val dayEventColorB = Color(0xFFE3F2FD)
 
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp), modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -199,6 +199,7 @@ fun WeekScreen(
                             onDelete = onDeleteEvent,
                             onMoveTo = onMoveEvent,
                             onCopyTo = onCopyEvent,
+                            compact = true,
                             containerColor = if (index % 2 == 0) dayEventColorA else dayEventColorB
                         )
                     }
