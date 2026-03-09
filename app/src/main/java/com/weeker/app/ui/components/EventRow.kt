@@ -1,6 +1,8 @@
 package com.weeker.app.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,16 +10,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
@@ -104,22 +103,39 @@ fun EventRow(
                 }
             }
             if (onMoveUp != null || onMoveDown != null) {
-                Column {
-                    IconButton(onClick = { onMoveUp?.invoke() }, enabled = onMoveUp != null && moveUpEnabled) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = "Move up",
-                            tint = MaterialTheme.colorScheme.onSurface
+                val canMove = (moveUpEnabled || moveDownEnabled)
+                val handleTint = if (canMove)
+                    MaterialTheme.colorScheme.onSurface
+                else
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                var accumulated by remember { mutableStateOf(0f) }
+                val threshold = 40f
+                Icon(
+                    imageVector = Icons.Default.DragHandle,
+                    contentDescription = "Reorder",
+                    tint = handleTint,
+                    modifier = Modifier
+                        .size(if (compact) 20.dp else 28.dp)
+                        .then(
+                            if (canMove) {
+                                Modifier.pointerInput(event.id, moveUpEnabled, moveDownEnabled) {
+                                    detectVerticalDragGestures(
+                                        onDragStart = { accumulated = 0f },
+                                        onVerticalDrag = { _, dragAmount ->
+                                            accumulated += dragAmount
+                                            if (accumulated < -threshold && moveUpEnabled) {
+                                                onMoveUp?.invoke()
+                                                accumulated = 0f
+                                            } else if (accumulated > threshold && moveDownEnabled) {
+                                                onMoveDown?.invoke()
+                                                accumulated = 0f
+                                            }
+                                        }
+                                    )
+                                }
+                            } else Modifier
                         )
-                    }
-                    IconButton(onClick = { onMoveDown?.invoke() }, enabled = onMoveDown != null && moveDownEnabled) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowDown,
-                            contentDescription = "Move down",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
+                )
             }
         }
 

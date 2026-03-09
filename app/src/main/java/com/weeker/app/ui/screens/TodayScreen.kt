@@ -1,6 +1,6 @@
 package com.weeker.app.ui.screens
 
-import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TodayScreen(
     t: (String) -> String,
@@ -45,11 +46,16 @@ fun TodayScreen(
     onDeleteEvent: (EventEntity) -> Unit,
     onMoveEvent: (EventEntity) -> Unit,
     onCopyEvent: (EventEntity) -> Unit,
+    onMoveEventUp: (EventEntity) -> Unit,
+    onMoveEventDown: (EventEntity) -> Unit,
     onAddEvent: () -> Unit,
     onOpenWeek: () -> Unit,
     onOpenWeekPicker: () -> Unit
 ) {
     val events by eventsFlow.collectAsState(initial = emptyList())
+    val orderedEvents = events.sortedWith(compareBy<EventEntity> { it.isDone }.thenBy { it.sortOrder }.thenBy { it.id })
+    val firstDoneIndex = orderedEvents.indexOfFirst { it.isDone }
+    val undoneCount = if (firstDoneIndex == -1) orderedEvents.size else firstDoneIndex
     val todayText = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
     val todayEventColorA = Color(0xFFFFF6CC)
     val todayEventColorB = Color(0xFFE3F2FD)
@@ -93,12 +99,12 @@ fun TodayScreen(
         }
         WeekerButton(text = t("add event"), onClick = onAddEvent, modifier = Modifier.fillMaxWidth())
 
-        if (events.isEmpty()) {
+        if (orderedEvents.isEmpty()) {
             Text(text = t("no events"), fontSize = 22.sp)
         }
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxSize()) {
-            itemsIndexed(events, key = { _, event -> event.id }) { index, event ->
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(3.dp), modifier = Modifier.fillMaxSize()) {
+            itemsIndexed(orderedEvents, key = { _, event -> event.id }) { index, event ->
                 EventRow(
                     event = event,
                     t = t,
@@ -106,7 +112,13 @@ fun TodayScreen(
                     onDelete = onDeleteEvent,
                     onMoveTo = onMoveEvent,
                     onCopyTo = onCopyEvent,
-                    containerColor = if (index % 2 == 0) todayEventColorA else todayEventColorB
+                    onMoveUp = if (!event.isDone) ({ onMoveEventUp(event) }) else null,
+                    onMoveDown = if (!event.isDone) ({ onMoveEventDown(event) }) else null,
+                    moveUpEnabled = !event.isDone && index > 0,
+                    moveDownEnabled = !event.isDone && index < undoneCount - 1,
+                    compact = true,
+                    containerColor = if (index % 2 == 0) todayEventColorA else todayEventColorB,
+                    modifier = Modifier.animateItemPlacement()
                 )
             }
         }
