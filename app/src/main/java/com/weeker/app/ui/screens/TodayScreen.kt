@@ -36,6 +36,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun TodayScreen(
     t: (String) -> String,
+    epochDay: Long = LocalDate.now().toEpochDay(),
     eventsFlow: Flow<List<EventEntity>>,
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -56,7 +57,9 @@ fun TodayScreen(
     val orderedEvents = events.sortedWith(compareBy<EventEntity> { it.isDone }.thenBy { it.sortOrder }.thenBy { it.id })
     val firstDoneIndex = orderedEvents.indexOfFirst { it.isDone }
     val undoneCount = if (firstDoneIndex == -1) orderedEvents.size else firstDoneIndex
-    val todayText = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+    val displayDate = LocalDate.ofEpochDay(epochDay)
+    val isToday = epochDay == LocalDate.now().toEpochDay()
+    val todayText = displayDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
     val todayEventColorA = Color(0xFFFFF6CC)
     val todayEventColorB = Color(0xFFE3F2FD)
 
@@ -75,9 +78,13 @@ fun TodayScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 WeekerBackButton(onClick = onBack)
+                val headerLabel = if (isToday) t("today").titleCaseFirst() else {
+                    val dayKey = dayNameKey(displayDate.dayOfWeek.value)
+                    t(dayKey).titleCaseFirst()
+                }
                 Text(text = buildAnnotatedString {
                     withStyle(SpanStyle(fontSize = 34.sp, color = MaterialTheme.colorScheme.onBackground)) {
-                        append(t("today").titleCaseFirst())
+                        append(headerLabel)
                         append(" ")
                     }
                     withStyle(SpanStyle(fontSize = 22.sp, color = MaterialTheme.colorScheme.onBackground)) {
@@ -123,4 +130,14 @@ fun TodayScreen(
             }
         }
     }
+}
+
+private fun dayNameKey(dayOfWeek: Int): String = when (dayOfWeek) {
+    1 -> "monday"
+    2 -> "tuesday"
+    3 -> "wednesday"
+    4 -> "thursday"
+    5 -> "friday"
+    6 -> "saturday"
+    else -> "sunday"
 }

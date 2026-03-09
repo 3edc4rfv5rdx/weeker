@@ -9,9 +9,13 @@ object Routes {
     const val WEEK = "week/{weekStart}"
     const val WEEK_ARG = "weekStart"
 
+    const val DAY = "day/{epochDay}"
+    const val DAY_ARG = "epochDay"
+
     const val EVENT_EDIT = "event_edit/{epochDay}"
     const val EVENT_DAY_ARG = "epochDay"
 
+    fun dayRoute(epochDay: Long) = "day/$epochDay"
     fun weekRoute(weekStart: Long) = "week/$weekStart"
     fun eventEditRoute(epochDay: Long) = "event_edit/$epochDay"
 }

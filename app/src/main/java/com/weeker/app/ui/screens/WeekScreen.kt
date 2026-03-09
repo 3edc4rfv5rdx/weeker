@@ -53,6 +53,7 @@ fun WeekScreen(
     onMoveEvent: (EventEntity) -> Unit,
     onCopyEvent: (EventEntity) -> Unit,
     onAddEvent: (Long) -> Unit,
+    onOpenDay: (Long) -> Unit,
     onOpenToday: () -> Unit,
     onOpenWeekPicker: () -> Unit,
     onPrevWeek: () -> Unit,
@@ -173,6 +174,7 @@ fun WeekScreen(
                             Box(
                                 modifier = Modifier
                                     .background(dayStateColor.container, CircleShape)
+                                    .clickable { onOpenDay(day) }
                                     .padding(horizontal = 8.dp, vertical = 3.dp)
                             ) {
                                 Text(
