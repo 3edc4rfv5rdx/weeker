@@ -29,6 +29,12 @@ class EventRepository(private val dao: EventDao) {
         )
     }
 
+    suspend fun updateEvent(entity: EventEntity, title: String, note: String) {
+        dao.update(entity.copy(title = title, note = note))
+    }
+
+    suspend fun getEvent(id: Long): EventEntity? = dao.getById(id)
+
     suspend fun toggleDone(entity: EventEntity, value: Boolean) {
         val dayEvents = loadDayInTodayOrder(entity.dateEpochDay).toMutableList()
         val currentIndex = dayEvents.indexOfFirst { it.id == entity.id }

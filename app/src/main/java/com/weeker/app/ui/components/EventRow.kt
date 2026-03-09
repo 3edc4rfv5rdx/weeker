@@ -40,6 +40,7 @@ fun EventRow(
     event: EventEntity,
     t: (String) -> String,
     onToggleDone: (Boolean) -> Unit,
+    onEdit: (EventEntity) -> Unit,
     onDelete: (EventEntity) -> Unit,
     onMoveTo: (EventEntity) -> Unit,
     onCopyTo: (EventEntity) -> Unit,
@@ -147,6 +148,14 @@ fun EventRow(
             onDismissRequest = { menuExpanded = false },
             modifier = Modifier.background(menuBg)
         ) {
+            DropdownMenuItem(
+                text = { Text(t("edit").titleCaseFirst(), color = menuText, fontSize = 20.sp) },
+                onClick = {
+                    menuExpanded = false
+                    onEdit(event)
+                },
+                colors = MenuDefaults.itemColors(textColor = menuText)
+            )
             DropdownMenuItem(
                 text = { Text(t("delete").titleCaseFirst(), color = menuText, fontSize = 20.sp) },
                 onClick = {

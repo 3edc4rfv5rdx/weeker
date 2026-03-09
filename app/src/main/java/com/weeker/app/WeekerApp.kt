@@ -253,6 +253,7 @@ fun WeekerApp(container: AppContainer) {
                     onToggleDone = { event, checked ->
                         scope.launch { container.eventRepository.toggleDone(event, checked) }
                     },
+                    onEditEvent = { target -> navController.navigate(Routes.eventEditByIdRoute(target.id)) },
                     onDeleteEvent = { target ->
                         scope.launch { container.eventRepository.deleteEvent(target) }
                     },
@@ -293,6 +294,7 @@ fun WeekerApp(container: AppContainer) {
                     onToggleDone = { event, checked ->
                         scope.launch { container.eventRepository.toggleDone(event, checked) }
                     },
+                    onEditEvent = { target -> navController.navigate(Routes.eventEditByIdRoute(target.id)) },
                     onDeleteEvent = { target ->
                         scope.launch { container.eventRepository.deleteEvent(target) }
                     },
@@ -331,6 +333,7 @@ fun WeekerApp(container: AppContainer) {
                     onToggleDone = { event, checked ->
                         scope.launch { container.eventRepository.toggleDone(event, checked) }
                     },
+                    onEditEvent = { target -> navController.navigate(Routes.eventEditByIdRoute(target.id)) },
                     onDeleteEvent = { target ->
                         scope.launch { container.eventRepository.deleteEvent(target) }
                     },
@@ -375,6 +378,38 @@ fun WeekerApp(container: AppContainer) {
                     },
                     onCancel = { navController.popBackStack() }
                 )
+            }
+
+            composable(
+                route = Routes.EVENT_EDIT_ID,
+                arguments = listOf(navArgument(Routes.EVENT_ID_ARG) { type = NavType.LongType })
+            ) { backStackEntry ->
+                val eventId = backStackEntry.arguments?.getLong(Routes.EVENT_ID_ARG) ?: 0L
+                val eventState = produceState<EventEntity?>(initialValue = null, eventId) {
+                    value = container.eventRepository.getEvent(eventId)
+                }
+                val event = eventState.value
+                if (event != null) {
+                    EventEditScreen(
+                        t = ::t,
+                        epochDay = event.dateEpochDay,
+                        initialTitle = event.title,
+                        initialNote = event.note,
+                        isEdit = true,
+                        onBack = ::goBack,
+                        onOpenSettings = ::onSettingsFromMenu,
+                        onBackup = ::onBackupFromMenu,
+                        onRestore = ::onRestoreFromMenu,
+                        onAbout = ::onAboutFromMenu,
+                        onSave = { title, note ->
+                            scope.launch {
+                                container.eventRepository.updateEvent(event, title, note)
+                                navController.popBackStack()
+                            }
+                        },
+                        onCancel = { navController.popBackStack() }
+                    )
+                }
             }
 
             composable(Routes.SETTINGS) {

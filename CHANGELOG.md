@@ -11,6 +11,9 @@
 ## 0.5.20260309+94
 - N Drag handle for reordering events within day in week view
 
+## 0.5.20260309+97
+- N Edit event from long-press context menu (all screens)
+
 ## 0.5.20260309+93
 - F Close (x) button instead of back arrow on today screen
 

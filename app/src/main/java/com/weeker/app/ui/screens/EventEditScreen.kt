@@ -28,6 +28,9 @@ import java.time.LocalDate
 fun EventEditScreen(
     t: (String) -> String,
     epochDay: Long,
+    initialTitle: String = "",
+    initialNote: String = "",
+    isEdit: Boolean = false,
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
     onBackup: () -> Unit,
@@ -36,8 +39,8 @@ fun EventEditScreen(
     onSave: (String, String) -> Unit,
     onCancel: () -> Unit
 ) {
-    val title = remember { mutableStateOf("") }
-    val note = remember { mutableStateOf("") }
+    val title = remember { mutableStateOf(initialTitle) }
+    val note = remember { mutableStateOf(initialNote) }
     val isPastDay = epochDay < LocalDate.now().toEpochDay()
     val focusRequester = remember { FocusRequester() }
 
@@ -58,7 +61,7 @@ fun EventEditScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 WeekerBackButton(onClick = onBack)
-                Text(text = t("add event").titleCaseFirst(), fontSize = 30.sp)
+                Text(text = t(if (isEdit) "edit event" else "add event").titleCaseFirst(), fontSize = 30.sp)
             }
             AppMenuButton(
                 t = t,
@@ -82,14 +85,14 @@ fun EventEditScreen(
             label = { Text(t("comment")) },
             modifier = Modifier.fillMaxWidth()
         )
-        if (isPastDay) {
+        if (isPastDay && !isEdit) {
             Text(text = t("cannot add events in past"), fontSize = 16.sp)
         }
         WeekerButton(
             text = t("save"),
             onClick = { if (title.value.isNotBlank()) onSave(title.value.trim(), note.value.trim()) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = title.value.isNotBlank() && !isPastDay
+            enabled = title.value.isNotBlank() && (isEdit || !isPastDay)
         )
         WeekerButton(text = t("cancel"), onClick = onCancel, modifier = Modifier.fillMaxWidth())
     }

@@ -18,6 +18,9 @@ interface EventDao {
     @Query("SELECT * FROM events WHERE dateEpochDay BETWEEN :startEpochDay AND :endEpochDay ORDER BY dateEpochDay ASC, sortOrder ASC, id ASC")
     fun observeByWeek(startEpochDay: Long, endEpochDay: Long): Flow<List<EventEntity>>
 
+    @Query("SELECT * FROM events WHERE id = :id")
+    suspend fun getById(id: Long): EventEntity?
+
     @Query("SELECT * FROM events ORDER BY dateEpochDay ASC, sortOrder ASC, id ASC")
     suspend fun getAll(): List<EventEntity>
 
