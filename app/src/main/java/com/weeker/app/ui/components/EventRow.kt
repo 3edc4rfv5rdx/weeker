@@ -116,6 +116,9 @@ fun EventRow(
                     tint = handleTint,
                     modifier = Modifier
                         .size(if (compact) 20.dp else 28.dp)
+                        .pointerInput(event.id) {
+                            detectTapGestures(onLongPress = {}, onTap = {})
+                        }
                         .then(
                             if (canMove) {
                                 Modifier.pointerInput(event.id, moveUpEnabled, moveDownEnabled) {
