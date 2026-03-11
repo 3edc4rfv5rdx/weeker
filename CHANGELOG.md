@@ -2,6 +2,10 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
+## 0.5.20260311+116
+- R Reformat i18n.json to multi-line style for readability
+- F Update app icon to new design
+
 ## 0.5.20260309+112
 - I Add LICENSE and icon source file
 - I Auto-detect APK names in install scripts
