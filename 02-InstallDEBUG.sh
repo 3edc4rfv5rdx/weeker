@@ -11,3 +11,4 @@ fi
 
 echo ">>> Installing $(basename "$apk") to $serial"
 adb -s "$serial" install -r "$apk"
+sleep 2

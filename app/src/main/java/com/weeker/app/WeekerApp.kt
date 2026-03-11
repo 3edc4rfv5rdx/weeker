@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.navigation.NavType
@@ -624,10 +625,17 @@ private fun MoveEventDateDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Color.White,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp),
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        containerColor = androidx.compose.material3.MaterialTheme.colorScheme.background,
         title = { Text(t(titleKey).titleCaseFirst()) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 MondayDatePicker(
                     languageCode = languageCode,
                     epochDay = selectedEpochDay,
