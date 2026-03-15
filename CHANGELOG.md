@@ -2,6 +2,11 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
+## 0.6.20260315+156
+- E Backup/restore includes all data: events, week notes, templates, settings
+- N Confirm dialog before restore with data loss warning
+- F Settings screen: language and theme as rows with selection dialogs
+
 ## 0.6.20260315+147
 - F Auto-focus text field in note add/edit dialogs (WeekNotes, AllNotes)
 

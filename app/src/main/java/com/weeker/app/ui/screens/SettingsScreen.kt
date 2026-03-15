@@ -1,5 +1,6 @@
 package com.weeker.app.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,20 +9,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.weeker.app.core.theme.ThemeMode
-import androidx.compose.foundation.clickable
 import com.weeker.app.ui.components.AppMenuButton
 import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
@@ -46,114 +50,160 @@ fun SettingsScreen(
 ) {
     val selectedLanguage = remember { mutableStateOf(currentLanguage) }
     val selectedMode = remember { mutableStateOf(currentMode) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
+    var showModeDialog by remember { mutableStateOf(false) }
 
-    LazyColumn(
+    val modeLabel = when (selectedMode.value) {
+        ThemeMode.LIGHT -> t("light").titleCaseFirst()
+        ThemeMode.DARK -> t("dark").titleCaseFirst()
+    }
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        item {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    WeekerBackButton(onClick = onBackArrow)
-                    Text(text = t("settings").titleCaseFirst(), fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground)
-                }
-                AppMenuButton(
-                    t = t,
-                    onSettings = onOpenSettings,
-                    onAllNotes = onAllNotes,
-                    onBackup = onBackup,
-                    onRestore = onRestore,
-                    onAbout = onAbout,
-                    onExit = onExit
-                )
+                WeekerBackButton(onClick = onBackArrow)
+                Text(text = t("settings").titleCaseFirst(), fontSize = 30.sp, color = MaterialTheme.colorScheme.onBackground)
             }
-        }
-
-        item {
-            Text(text = t("language").titleCaseFirst(), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-        }
-
-        items(languages) { language ->
-            SelectOption(
-                label = language,
-                selected = selectedLanguage.value == language,
-                onClick = { selectedLanguage.value = language }
+            AppMenuButton(
+                t = t,
+                onSettings = onOpenSettings,
+                onAllNotes = onAllNotes,
+                onBackup = onBackup,
+                onRestore = onRestore,
+                onAbout = onAbout,
+                onExit = onExit
             )
         }
 
-        item {
-            Text(text = t("mode").titleCaseFirst(), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-        }
+        SettingsRow(
+            label = t("language").titleCaseFirst(),
+            value = selectedLanguage.value,
+            onClick = { showLanguageDialog = true }
+        )
 
-        item {
-            SelectOption(
-                label = t("light").titleCaseFirst(),
-                selected = selectedMode.value == ThemeMode.LIGHT,
-                onClick = { selectedMode.value = ThemeMode.LIGHT }
-            )
-        }
+        SettingsRow(
+            label = t("mode").titleCaseFirst(),
+            value = modeLabel,
+            onClick = { showModeDialog = true }
+        )
 
-        item {
-            SelectOption(
-                label = t("dark").titleCaseFirst(),
-                selected = selectedMode.value == ThemeMode.DARK,
-                onClick = { selectedMode.value = ThemeMode.DARK }
-            )
-        }
+        SettingsRow(
+            label = t("templates").titleCaseFirst(),
+            value = "",
+            onClick = onTemplates
+        )
 
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onTemplates)
-                    .padding(vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = t("templates").titleCaseFirst(), fontSize = 20.sp)
-                Text(text = ">", fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
+        WeekerButton(
+            text = t("save"),
+            onClick = { onSave(selectedLanguage.value, selectedMode.value) },
+            modifier = Modifier.fillMaxWidth()
+        )
 
-        item {
-            WeekerButton(
-                text = t("save"),
-                onClick = { onSave(selectedLanguage.value, selectedMode.value) },
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
+        WeekerButton(text = t("cancel"), onClick = onBack, modifier = Modifier.fillMaxWidth())
+    }
 
-        item {
-            WeekerButton(text = t("cancel"), onClick = onBack, modifier = Modifier.fillMaxWidth())
+    if (showLanguageDialog) {
+        SelectDialog(
+            title = t("language").titleCaseFirst(),
+            options = languages,
+            selected = selectedLanguage.value,
+            onSelect = {
+                selectedLanguage.value = it
+                showLanguageDialog = false
+            },
+            onDismiss = { showLanguageDialog = false }
+        )
+    }
+
+    if (showModeDialog) {
+        SelectDialog(
+            title = t("mode").titleCaseFirst(),
+            options = listOf(ThemeMode.LIGHT.id, ThemeMode.DARK.id),
+            optionLabels = listOf(t("light").titleCaseFirst(), t("dark").titleCaseFirst()),
+            selected = selectedMode.value.id,
+            onSelect = {
+                selectedMode.value = if (it == ThemeMode.LIGHT.id) ThemeMode.LIGHT else ThemeMode.DARK
+                showModeDialog = false
+            },
+            onDismiss = { showModeDialog = false }
+        )
+    }
+}
+
+@Composable
+private fun SettingsRow(label: String, value: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 14.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = "$label:", fontSize = 20.sp)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(text = value, fontSize = 20.sp, color = MaterialTheme.colorScheme.primary)
+            Text(text = "  >", fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
 @Composable
-private fun SelectOption(label: String, selected: Boolean, onClick: () -> Unit) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = if (selected) {
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-            } else {
-                MaterialTheme.colorScheme.surface
+private fun SelectDialog(
+    title: String,
+    options: List<String>,
+    selected: String,
+    onSelect: (String) -> Unit,
+    onDismiss: () -> Unit,
+    optionLabels: List<String>? = null
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = title,
+                    fontSize = 22.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                options.forEachIndexed { index, option ->
+                    val label = optionLabels?.getOrNull(index) ?: option
+                    Card(
+                        onClick = { onSelect(option) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (option == selected) {
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            }
+                        )
+                    ) {
+                        Text(
+                            text = label,
+                            modifier = Modifier.padding(12.dp),
+                            fontSize = 20.sp
+                        )
+                    }
+                }
             }
-        )
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(10.dp),
-            fontSize = 20.sp
-        )
+        }
     }
 }

@@ -61,6 +61,8 @@ import androidx.navigation.navArgument
 import com.weeker.app.core.theme.ThemeMode
 import com.weeker.app.core.theme.WeekerTheme
 import com.weeker.app.data.local.EventEntity
+import com.weeker.app.data.local.EventTemplateEntity
+import com.weeker.app.data.local.WeekNoteEntity
 import com.weeker.app.data.repository.EventRepository
 import com.weeker.app.navigation.Routes
 import com.weeker.app.ui.components.AppMenuButton
@@ -122,6 +124,7 @@ fun WeekerApp(container: AppContainer) {
     val appAuthor = "Eugen"
     val appVersion = BuildConfig.VERSION_NAME
     val appBuild = BuildConfig.VERSION_CODE
+    var showRestoreWarning by remember { mutableStateOf(false) }
     val restoreLauncher = rememberLauncherForActivityResult(OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         val fileName = queryDisplayName(context, uri)
@@ -137,8 +140,11 @@ fun WeekerApp(container: AppContainer) {
                 )
             }
             runCatching {
-                val restored = readEventsFromDbBackup(context, uri)
-                container.eventRepository.replaceAllEvents(restored)
+                val backup = readBackupFromDb(context, uri)
+                container.eventRepository.replaceAllEvents(backup.events)
+                container.weekNoteRepository.replaceAllNotes(backup.notes)
+                container.eventTemplateRepository.replaceAllTemplates(backup.templates)
+                container.settingsRepository.restoreSettings(backup.settings)
             }.onSuccess {
                 launch(Dispatchers.Main) {
                     Toast.makeText(context, t("restore complete"), Toast.LENGTH_SHORT).show()
@@ -186,7 +192,10 @@ fun WeekerApp(container: AppContainer) {
         scope.launch(Dispatchers.IO) {
             runCatching {
                 val events = container.eventRepository.exportEvents()
-                val folder = writePublicBackupFiles(context, events)
+                val notes = container.weekNoteRepository.exportNotes()
+                val templates = container.eventTemplateRepository.exportTemplates()
+                val settings = container.settingsRepository.exportSettings()
+                val folder = writePublicBackupFiles(context, events, notes, templates, settings)
                 cleanupLegacyJsonBackups(context.filesDir)
                 folder
             }.onSuccess { folderPath ->
@@ -202,7 +211,7 @@ fun WeekerApp(container: AppContainer) {
     }
 
     fun onRestoreFromMenu() {
-        restoreLauncher.launch(arrayOf("*/*"))
+        showRestoreWarning = true
     }
 
     fun onAboutFromMenu() {
@@ -616,6 +625,27 @@ fun WeekerApp(container: AppContainer) {
             )
         }
 
+        if (showRestoreWarning) {
+            AlertDialog(
+                onDismissRequest = { showRestoreWarning = false },
+                title = { Text(t("restore").titleCaseFirst(), fontSize = 22.sp) },
+                text = { Text(t("all current data will be replaced with backup data"), fontSize = 18.sp) },
+                confirmButton = {
+                    Button(onClick = {
+                        showRestoreWarning = false
+                        restoreLauncher.launch(arrayOf("*/*"))
+                    }) {
+                        Text(t("restore").titleCaseFirst())
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showRestoreWarning = false }) {
+                        Text(t("cancel").titleCaseFirst())
+                    }
+                }
+            )
+        }
+
         val moveTarget = moveEventTarget
         if (moveTarget != null) {
             MoveEventDateDialog(
@@ -999,12 +1029,18 @@ private fun weekdayLabels(languageCode: String): List<String> {
     }
 }
 
-private fun writePublicBackupFiles(context: Context, events: List<EventEntity>): String {
+private fun writePublicBackupFiles(
+    context: Context,
+    events: List<EventEntity>,
+    notes: List<WeekNoteEntity>,
+    templates: List<EventTemplateEntity>,
+    settings: Map<String, String>
+): String {
     val dayFolder = "w" + SimpleDateFormat("yyyyMMdd", Locale.US).format(Date())
     val timeStamp = SimpleDateFormat("HHmmss", Locale.US).format(Date())
     val dbFileName = "bak-$timeStamp.db"
     val csvFileName = "bak-$timeStamp.csv"
-    val dbBytes = buildBackupDbBytes(context.cacheDir, events)
+    val dbBytes = buildBackupDbBytes(context.cacheDir, events, notes, templates, settings)
     val csvBytes = buildBackupCsv(events).toByteArray(Charsets.UTF_8)
 
     writeToDocumentsWeeker(context, dayFolder, dbFileName, "application/vnd.sqlite3", dbBytes)
@@ -1012,7 +1048,13 @@ private fun writePublicBackupFiles(context: Context, events: List<EventEntity>):
     return "Documents/Weeker/$dayFolder"
 }
 
-private fun buildBackupDbBytes(tempDir: File, events: List<EventEntity>): ByteArray {
+private fun buildBackupDbBytes(
+    tempDir: File,
+    events: List<EventEntity>,
+    notes: List<WeekNoteEntity>,
+    templates: List<EventTemplateEntity>,
+    settings: Map<String, String>
+): ByteArray {
     val tempDb = File.createTempFile("weeker_backup_", ".db", tempDir)
     val db = SQLiteDatabase.openOrCreateDatabase(tempDb, null)
     try {
@@ -1030,6 +1072,34 @@ private fun buildBackupDbBytes(tempDir: File, events: List<EventEntity>): ByteAr
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS index_events_dateEpochDay ON events(dateEpochDay)")
         db.execSQL("CREATE INDEX IF NOT EXISTS index_events_dateEpochDay_sortOrder ON events(dateEpochDay, sortOrder)")
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS week_notes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                weekStartEpochDay INTEGER NOT NULL,
+                text TEXT NOT NULL,
+                sortOrder INTEGER NOT NULL
+            )
+            """.trimIndent()
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS index_week_notes_weekStartEpochDay ON week_notes(weekStartEpochDay)")
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS event_templates (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                title TEXT NOT NULL,
+                sortOrder INTEGER NOT NULL
+            )
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS settings (
+                key TEXT PRIMARY KEY NOT NULL,
+                value TEXT NOT NULL
+            )
+            """.trimIndent()
+        )
         db.beginTransaction()
         try {
             events.forEach { event ->
@@ -1042,6 +1112,30 @@ private fun buildBackupDbBytes(tempDir: File, events: List<EventEntity>): ByteAr
                     put("sortOrder", event.sortOrder)
                 }
                 db.insertOrThrow("events", null, values)
+            }
+            notes.forEach { note ->
+                val values = ContentValues().apply {
+                    put("id", note.id)
+                    put("weekStartEpochDay", note.weekStartEpochDay)
+                    put("text", note.text)
+                    put("sortOrder", note.sortOrder)
+                }
+                db.insertOrThrow("week_notes", null, values)
+            }
+            templates.forEach { tmpl ->
+                val values = ContentValues().apply {
+                    put("id", tmpl.id)
+                    put("title", tmpl.title)
+                    put("sortOrder", tmpl.sortOrder)
+                }
+                db.insertOrThrow("event_templates", null, values)
+            }
+            settings.forEach { (key, value) ->
+                val values = ContentValues().apply {
+                    put("key", key)
+                    put("value", value)
+                }
+                db.insertOrThrow("settings", null, values)
             }
             db.setTransactionSuccessful()
         } finally {
@@ -1152,7 +1246,14 @@ private fun cleanupLegacyJsonBackups(root: File) {
         ?.forEach { it.delete() }
 }
 
-private fun readEventsFromDbBackup(context: Context, backupUri: Uri): List<EventEntity> {
+private data class BackupData(
+    val events: List<EventEntity>,
+    val notes: List<WeekNoteEntity>,
+    val templates: List<EventTemplateEntity>,
+    val settings: Map<String, String>
+)
+
+private fun readBackupFromDb(context: Context, backupUri: Uri): BackupData {
     val tempDb = File.createTempFile("weeker_restore_", ".db", context.cacheDir)
     try {
         context.contentResolver.openInputStream(backupUri)?.use { input ->
@@ -1165,10 +1266,7 @@ private fun readEventsFromDbBackup(context: Context, backupUri: Uri): List<Event
             val cursor = db.query(
                 "events",
                 arrayOf("id", "title", "note", "dateEpochDay", "isDone", "sortOrder"),
-                null,
-                null,
-                null,
-                null,
+                null, null, null, null,
                 "dateEpochDay ASC, sortOrder ASC, id ASC"
             )
             cursor.use {
@@ -1189,7 +1287,72 @@ private fun readEventsFromDbBackup(context: Context, backupUri: Uri): List<Event
                     )
                 }
             }
-            return events
+
+            val notes = mutableListOf<WeekNoteEntity>()
+            if (hasTable(db, "week_notes")) {
+                val notesCursor = db.query(
+                    "week_notes",
+                    arrayOf("id", "weekStartEpochDay", "text", "sortOrder"),
+                    null, null, null, null,
+                    "weekStartEpochDay ASC, sortOrder ASC, id ASC"
+                )
+                notesCursor.use {
+                    val idIdx = it.getColumnIndexOrThrow("id")
+                    val weekIdx = it.getColumnIndexOrThrow("weekStartEpochDay")
+                    val textIdx = it.getColumnIndexOrThrow("text")
+                    val sortIdx = it.getColumnIndexOrThrow("sortOrder")
+                    while (it.moveToNext()) {
+                        notes += WeekNoteEntity(
+                            id = it.getLong(idIdx),
+                            weekStartEpochDay = it.getLong(weekIdx),
+                            text = it.getString(textIdx) ?: "",
+                            sortOrder = it.getInt(sortIdx)
+                        )
+                    }
+                }
+            }
+
+            val templates = mutableListOf<EventTemplateEntity>()
+            if (hasTable(db, "event_templates")) {
+                val tmplCursor = db.query(
+                    "event_templates",
+                    arrayOf("id", "title", "sortOrder"),
+                    null, null, null, null,
+                    "sortOrder ASC, id ASC"
+                )
+                tmplCursor.use {
+                    val idIdx = it.getColumnIndexOrThrow("id")
+                    val titleIdx = it.getColumnIndexOrThrow("title")
+                    val sortIdx = it.getColumnIndexOrThrow("sortOrder")
+                    while (it.moveToNext()) {
+                        templates += EventTemplateEntity(
+                            id = it.getLong(idIdx),
+                            title = it.getString(titleIdx) ?: "",
+                            sortOrder = it.getInt(sortIdx)
+                        )
+                    }
+                }
+            }
+
+            val settings = mutableMapOf<String, String>()
+            if (hasTable(db, "settings")) {
+                val settingsCursor = db.query(
+                    "settings",
+                    arrayOf("key", "value"),
+                    null, null, null, null, null
+                )
+                settingsCursor.use {
+                    val keyIdx = it.getColumnIndexOrThrow("key")
+                    val valueIdx = it.getColumnIndexOrThrow("value")
+                    while (it.moveToNext()) {
+                        val k = it.getString(keyIdx) ?: continue
+                        val v = it.getString(valueIdx) ?: continue
+                        settings[k] = v
+                    }
+                }
+            }
+
+            return BackupData(events, notes, templates, settings)
         } finally {
             db.close()
         }
@@ -1198,4 +1361,11 @@ private fun readEventsFromDbBackup(context: Context, backupUri: Uri): List<Event
     } finally {
         tempDb.delete()
     }
+}
+
+private fun hasTable(db: SQLiteDatabase, tableName: String): Boolean {
+    db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+        arrayOf(tableName)
+    ).use { return it.moveToFirst() }
 }

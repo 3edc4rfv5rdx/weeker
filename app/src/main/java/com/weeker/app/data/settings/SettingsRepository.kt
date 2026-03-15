@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 private val Context.settingsDataStore by preferencesDataStore(name = "settings")
@@ -35,5 +36,24 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setOnboardingDone(done: Boolean) {
         context.settingsDataStore.edit { it[keyOnboardingDone] = done }
+    }
+
+    suspend fun exportSettings(): Map<String, String> {
+        val prefs = context.settingsDataStore.data.first()
+        val map = mutableMapOf<String, String>()
+        prefs[keyLanguage]?.let { map["language"] = it }
+        prefs[keyTheme]?.let { map["theme"] = it }
+        prefs[keyThemeMode]?.let { map["theme_mode"] = it }
+        prefs[keyOnboardingDone]?.let { map["onboarding_done"] = it.toString() }
+        return map
+    }
+
+    suspend fun restoreSettings(settings: Map<String, String>) {
+        context.settingsDataStore.edit { prefs ->
+            settings["language"]?.let { prefs[keyLanguage] = it }
+            settings["theme"]?.let { prefs[keyTheme] = it }
+            settings["theme_mode"]?.let { prefs[keyThemeMode] = it }
+            settings["onboarding_done"]?.let { prefs[keyOnboardingDone] = it.toBoolean() }
+        }
     }
 }
