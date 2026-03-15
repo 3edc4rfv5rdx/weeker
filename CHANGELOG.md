@@ -2,6 +2,18 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
+## 0.6.20260314+127
+- N Week notes: add/edit/delete notes per week from Week and Day screens
+- N Notes button (N/N!) on Week screen header with indicator for existing notes
+- N All notes screen with search, grouped by week (menu entry)
+- N Calendar highlights weeks with notes using colored row background
+- N Confirm delete dialog for notes
+- I DB migration v1 to v2: week_notes and event_templates tables
+- I WeekNoteDao, WeekNoteRepository, EventTemplateDao, EventTemplateRepository
+- I Routes for WEEK_NOTES, ALL_NOTES, TEMPLATES
+- F Compact navigation buttons on Week screen (reduced padding/gap)
+- F Disable add event button for past days on Day screen
+
 ## 0.5.20260311+116
 - R Reformat i18n.json to multi-line style for readability
 - F Update app icon to new design

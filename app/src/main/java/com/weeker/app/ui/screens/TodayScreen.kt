@@ -45,6 +45,7 @@ fun TodayScreen(
     eventsFlow: Flow<List<EventEntity>>,
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
+    onAllNotes: () -> Unit = {},
     onBackup: () -> Unit,
     onRestore: () -> Unit,
     onAbout: () -> Unit,
@@ -59,7 +60,8 @@ fun TodayScreen(
     onAddEvent: () -> Unit,
     onOpenToday: () -> Unit,
     onOpenWeek: () -> Unit,
-    onOpenWeekPicker: () -> Unit
+    onOpenWeekPicker: () -> Unit,
+    onOpenNotes: () -> Unit
 ) {
     val events by eventsFlow.collectAsState(initial = emptyList())
     val orderedEvents = events.sortedWith(compareBy<EventEntity> { it.isDone }.thenBy { it.sortOrder }.thenBy { it.id })
@@ -114,21 +116,28 @@ fun TodayScreen(
             AppMenuButton(
                 t = t,
                 onSettings = onOpenSettings,
+                onAllNotes = onAllNotes,
                 onBackup = onBackup,
                 onRestore = onRestore,
                 onAbout = onAbout,
                 onExit = onExit
             )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
             WeekerButton(text = t("week"), onClick = onOpenWeek, modifier = Modifier.weight(1f))
             WeekerButton(text = t("calendar"), onClick = onOpenWeekPicker, modifier = Modifier.weight(1f))
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+            WeekerButton(text = t("notes"), onClick = onOpenNotes, modifier = Modifier.weight(1f))
             if (!isToday) {
                 WeekerButton(text = t("today"), onClick = onOpenToday, modifier = Modifier.weight(1f))
             }
-            WeekerButton(text = t("add"), onClick = onAddEvent, modifier = Modifier.weight(1f))
+            WeekerButton(
+                text = t("add"),
+                onClick = onAddEvent,
+                modifier = Modifier.weight(1f),
+                enabled = epochDay >= LocalDate.now().toEpochDay()
+            )
         }
 
         if (orderedEvents.isEmpty()) {

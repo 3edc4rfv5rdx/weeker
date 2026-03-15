@@ -33,6 +33,7 @@ fun OnboardingScreen(
     languages: List<String>,
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
+    onAllNotes: () -> Unit = {},
     onBackup: () -> Unit,
     onRestore: () -> Unit,
     onAbout: () -> Unit,
@@ -63,6 +64,7 @@ fun OnboardingScreen(
                 AppMenuButton(
                     t = t,
                     onSettings = onOpenSettings,
+                    onAllNotes = onAllNotes,
                     onBackup = onBackup,
                     onRestore = onRestore,
                     onAbout = onAbout,

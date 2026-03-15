@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 fun AppMenuButton(
     t: (String) -> String,
     onSettings: () -> Unit,
+    onAllNotes: () -> Unit = {},
     onBackup: () -> Unit,
     onRestore: () -> Unit,
     onAbout: () -> Unit,
@@ -49,6 +50,14 @@ fun AppMenuButton(
                 onClick = {
                     expanded = false
                     onSettings()
+                },
+                colors = MenuDefaults.itemColors(textColor = menuText)
+            )
+            DropdownMenuItem(
+                text = { Text(t("all notes").titleCaseFirst(), fontSize = 20.sp, color = menuText) },
+                onClick = {
+                    expanded = false
+                    onAllNotes()
                 },
                 colors = MenuDefaults.itemColors(textColor = menuText)
             )

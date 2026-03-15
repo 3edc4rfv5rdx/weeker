@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
@@ -25,9 +26,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.data.local.EventEntity
+import com.weeker.app.data.local.WeekNoteEntity
 import com.weeker.app.core.theme.WeekStateColor
 import com.weeker.app.core.theme.WeekStatusColors
 import com.weeker.app.ui.components.AppMenuButton
@@ -44,9 +47,11 @@ fun WeekScreen(
     t: (String) -> String,
     weekStart: Long,
     eventsFlow: Flow<List<EventEntity>>,
+    notesFlow: Flow<List<WeekNoteEntity>>,
     weekStatusColors: WeekStatusColors,
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
+    onAllNotes: () -> Unit = {},
     onBackup: () -> Unit,
     onRestore: () -> Unit,
     onAbout: () -> Unit,
@@ -62,10 +67,13 @@ fun WeekScreen(
     onOpenDay: (Long) -> Unit,
     onOpenToday: () -> Unit,
     onOpenWeekPicker: () -> Unit,
+    onOpenNotes: () -> Unit,
     onPrevWeek: () -> Unit,
     onNextWeek: () -> Unit
 ) {
     val events by eventsFlow.collectAsState(initial = emptyList())
+    val notes by notesFlow.collectAsState(initial = emptyList())
+    val hasNotes = notes.isNotEmpty()
     val today = LocalDate.now()
     val todayEpochDay = today.toEpochDay()
     val currentWeekStart = today.minusDays((today.dayOfWeek.value - 1).toLong()).toEpochDay()
@@ -83,47 +91,59 @@ fun WeekScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Box(modifier = Modifier.align(Alignment.Center)) {
-                Box(
-                    modifier = Modifier
-                        .background(currentWeekStateColor.container, shape = CircleShape)
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = t("week").titleCaseFirst(),
-                            fontSize = 26.sp,
-                            color = currentWeekStateColor.content
-                        )
-                        Text(
-                            text = weekRange,
-                            fontSize = 18.sp,
-                            color = currentWeekStateColor.content,
-                            modifier = Modifier.padding(horizontal = 6.dp)
-                        )
-                    }
+        // Header: back, title+date (left), notes button, menu
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            WeekerBackButton(onClick = onBack)
+            Box(
+                modifier = Modifier
+                    .background(currentWeekStateColor.container, shape = RoundedCornerShape(20.dp))
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
+            ) {
+                Column {
+                    Text(
+                        text = t("week").titleCaseFirst(),
+                        fontSize = 26.sp,
+                        color = currentWeekStateColor.content
+                    )
+                    Text(
+                        text = weekRange,
+                        fontSize = 16.sp,
+                        color = currentWeekStateColor.content
+                    )
                 }
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Box(modifier = Modifier.weight(1f))
+            Box(
+                modifier = Modifier
+                    .background(currentWeekStateColor.container, CircleShape)
+                    .clickable(onClick = onOpenNotes)
+                    .padding(12.dp),
+                contentAlignment = Alignment.Center
             ) {
-                WeekerBackButton(onClick = onBack)
-                AppMenuButton(
-                    t = t,
-                    onSettings = onOpenSettings,
-                    onBackup = onBackup,
-                    onRestore = onRestore,
-                    onAbout = onAbout,
-                    onExit = onExit
+                Text(
+                    text = if (hasNotes) "N!" else "N",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = currentWeekStateColor.content
                 )
             }
+            AppMenuButton(
+                t = t,
+                onSettings = onOpenSettings,
+                onAllNotes = onAllNotes,
+                onBackup = onBackup,
+                onRestore = onRestore,
+                onAbout = onAbout,
+                onExit = onExit
+            )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        // Navigation buttons — compact
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
             WeekerButton(
                 text = t("prev week"),
                 onClick = onPrevWeek,
@@ -139,7 +159,7 @@ fun WeekScreen(
                 contentColor = futureColor.content
             )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
             WeekerButton(
                 text = t("today"),
                 onClick = onOpenToday,

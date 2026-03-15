@@ -30,7 +30,7 @@ fun WeekerButton(
             containerColor = containerColor,
             contentColor = contentColor
         ),
-        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
     ) {
         Text(text = text, fontSize = 18.sp)
     }

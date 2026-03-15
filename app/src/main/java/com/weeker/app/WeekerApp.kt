@@ -71,6 +71,8 @@ import com.weeker.app.ui.screens.EventEditScreen
 import com.weeker.app.ui.screens.OnboardingScreen
 import com.weeker.app.ui.screens.SettingsScreen
 import com.weeker.app.ui.screens.TodayScreen
+import com.weeker.app.ui.screens.AllNotesScreen
+import com.weeker.app.ui.screens.WeekNotesScreen
 import com.weeker.app.ui.screens.WeekScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -97,6 +99,8 @@ fun WeekerApp(container: AppContainer) {
     }
     val selectedLanguagePref by container.settingsRepository.languageFlow.collectAsState(initial = null)
     val selectedThemeModePref by container.settingsRepository.themeModeFlow.collectAsState(initial = null)
+
+    val weeksWithNotes by container.weekNoteRepository.observeWeeksWithNotes().collectAsState(initial = emptySet())
 
     val defaultLanguage = remember { container.localizationManager.defaultLanguage() }
     val defaultThemeId = remember { container.themeManager.defaultThemeId() }
@@ -171,6 +175,12 @@ fun WeekerApp(container: AppContainer) {
         }
     }
 
+    fun onAllNotesFromMenu() {
+        navController.navigate(Routes.ALL_NOTES) {
+            launchSingleTop = true
+        }
+    }
+
     fun onBackupFromMenu() {
         scope.launch(Dispatchers.IO) {
             runCatching {
@@ -229,6 +239,7 @@ fun WeekerApp(container: AppContainer) {
                     languages = container.localizationManager.availableLanguages(),
                     onBack = ::exitFromAnyScreenByDoubleTap,
                     onOpenSettings = ::onSettingsFromMenu,
+                    onAllNotes = ::onAllNotesFromMenu,
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
@@ -254,6 +265,7 @@ fun WeekerApp(container: AppContainer) {
                     eventsFlow = container.eventRepository.observeDay(todayEpochDay),
                     onBack = ::exitFromAnyScreenByDoubleTap,
                     onOpenSettings = ::onSettingsFromMenu,
+                    onAllNotes = ::onAllNotesFromMenu,
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
@@ -279,7 +291,11 @@ fun WeekerApp(container: AppContainer) {
                         val monday = EventRepository.mondayStart(today)
                         navController.navigate(Routes.weekRoute(monday))
                     },
-                    onOpenWeekPicker = { navController.navigate(Routes.weekPickerRoute("day")) }
+                    onOpenWeekPicker = { navController.navigate(Routes.weekPickerRoute("day")) },
+                    onOpenNotes = {
+                        val monday = EventRepository.mondayStart(today)
+                        navController.navigate(Routes.weekNotesRoute(monday))
+                    }
                 )
             }
 
@@ -293,9 +309,11 @@ fun WeekerApp(container: AppContainer) {
                     t = ::t,
                     weekStart = start,
                     eventsFlow = container.eventRepository.observeWeek(start),
+                    notesFlow = container.weekNoteRepository.observeByWeek(start),
                     weekStatusColors = palette.weekStatusColors,
                     onBack = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
+                    onAllNotes = ::onAllNotesFromMenu,
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
@@ -319,6 +337,7 @@ fun WeekerApp(container: AppContainer) {
                     onOpenDay = { day -> navController.navigate(Routes.dayRoute(day)) },
                     onOpenToday = { navController.navigate(Routes.TODAY) },
                     onOpenWeekPicker = { navController.navigate(Routes.weekPickerRoute("week")) },
+                    onOpenNotes = { navController.navigate(Routes.weekNotesRoute(start)) },
                     onPrevWeek = { navController.navigate(Routes.weekRoute(start - 7)) },
                     onNextWeek = { navController.navigate(Routes.weekRoute(start + 7)) }
                 )
@@ -336,6 +355,7 @@ fun WeekerApp(container: AppContainer) {
                     eventsFlow = container.eventRepository.observeDay(dayEpoch),
                     onBack = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
+                    onAllNotes = ::onAllNotesFromMenu,
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
@@ -362,7 +382,12 @@ fun WeekerApp(container: AppContainer) {
                         val monday = EventRepository.mondayStart(dayDate)
                         navController.navigate(Routes.weekRoute(monday))
                     },
-                    onOpenWeekPicker = { navController.navigate(Routes.weekPickerRoute("day")) }
+                    onOpenWeekPicker = { navController.navigate(Routes.weekPickerRoute("day")) },
+                    onOpenNotes = {
+                        val dayDate = LocalDate.ofEpochDay(dayEpoch)
+                        val monday = EventRepository.mondayStart(dayDate)
+                        navController.navigate(Routes.weekNotesRoute(monday))
+                    }
                 )
             }
 
@@ -377,6 +402,7 @@ fun WeekerApp(container: AppContainer) {
                     epochDay = epochDay,
                     onBack = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
+                    onAllNotes = ::onAllNotesFromMenu,
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
@@ -409,6 +435,7 @@ fun WeekerApp(container: AppContainer) {
                         isEdit = true,
                         onBack = ::goBack,
                         onOpenSettings = ::onSettingsFromMenu,
+                        onAllNotes = ::onAllNotesFromMenu,
                         onBackup = ::onBackupFromMenu,
                         onRestore = ::onRestoreFromMenu,
                         onAbout = ::onAboutFromMenu,
@@ -424,6 +451,56 @@ fun WeekerApp(container: AppContainer) {
                 }
             }
 
+            composable(
+                route = Routes.WEEK_NOTES,
+                arguments = listOf(navArgument(Routes.WEEK_NOTES_ARG) { type = NavType.LongType })
+            ) { backStackEntry ->
+                val ws = backStackEntry.arguments?.getLong(Routes.WEEK_NOTES_ARG)
+                    ?: EventRepository.mondayStart(LocalDate.now())
+                WeekNotesScreen(
+                    t = ::t,
+                    weekStart = ws,
+                    notesFlow = container.weekNoteRepository.observeByWeek(ws),
+                    onBack = ::goBack,
+                    onOpenSettings = ::onSettingsFromMenu,
+                    onAllNotes = ::onAllNotesFromMenu,
+                    onBackup = ::onBackupFromMenu,
+                    onRestore = ::onRestoreFromMenu,
+                    onAbout = ::onAboutFromMenu,
+                    onExit = ::onExitFromMenu,
+                    onAddNote = { text ->
+                        scope.launch { container.weekNoteRepository.addNote(ws, text) }
+                    },
+                    onUpdateNote = { note, text ->
+                        scope.launch { container.weekNoteRepository.updateNote(note, text) }
+                    },
+                    onDeleteNote = { note ->
+                        scope.launch { container.weekNoteRepository.deleteNote(note) }
+                    }
+                )
+            }
+
+            composable(Routes.ALL_NOTES) {
+                AllNotesScreen(
+                    t = ::t,
+                    allNotesFlow = container.weekNoteRepository.observeAll(),
+                    onBack = ::goBack,
+                    onOpenSettings = ::onSettingsFromMenu,
+                    onAllNotes = ::onAllNotesFromMenu,
+                    onBackup = ::onBackupFromMenu,
+                    onRestore = ::onRestoreFromMenu,
+                    onAbout = ::onAboutFromMenu,
+                    onExit = ::onExitFromMenu,
+                    onUpdateNote = { note, text ->
+                        scope.launch { container.weekNoteRepository.updateNote(note, text) }
+                    },
+                    onDeleteNote = { note ->
+                        scope.launch { container.weekNoteRepository.deleteNote(note) }
+                    },
+                    searchFlow = { query -> container.weekNoteRepository.search(query) }
+                )
+            }
+
             composable(Routes.SETTINGS) {
                 SettingsScreen(
                     t = ::t,
@@ -432,6 +509,7 @@ fun WeekerApp(container: AppContainer) {
                     languages = container.localizationManager.availableLanguages(),
                     onBackArrow = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
+                    onAllNotes = ::onAllNotesFromMenu,
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
@@ -457,6 +535,7 @@ fun WeekerApp(container: AppContainer) {
                     t = ::t,
                     title = pickerTitle,
                     languageCode = selectedLanguage,
+                    weeksWithNotes = weeksWithNotes,
                     onPick = { date ->
                         if (pickerMode == "week") {
                             val monday = EventRepository.mondayStart(date)
@@ -468,6 +547,7 @@ fun WeekerApp(container: AppContainer) {
                     onBackArrow = ::goBack,
                     onCancel = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
+                    onAllNotes = ::onAllNotesFromMenu,
                     onBackup = ::onBackupFromMenu,
                     onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
@@ -559,10 +639,12 @@ private fun WeekPickerScreen(
     t: (String) -> String,
     title: String,
     languageCode: String,
+    weeksWithNotes: Set<Long> = emptySet(),
     onPick: (LocalDate) -> Unit,
     onBackArrow: () -> Unit,
     onCancel: () -> Unit,
     onOpenSettings: () -> Unit,
+    onAllNotes: () -> Unit = {},
     onBackup: () -> Unit,
     onRestore: () -> Unit,
     onAbout: () -> Unit,
@@ -590,6 +672,7 @@ private fun WeekPickerScreen(
             AppMenuButton(
                 t = t,
                 onSettings = onOpenSettings,
+                onAllNotes = onAllNotes,
                 onBackup = onBackup,
                 onRestore = onRestore,
                 onAbout = onAbout,
@@ -600,6 +683,7 @@ private fun WeekPickerScreen(
             languageCode = languageCode,
             epochDay = selectedEpochDay,
             onEpochDayChanged = { selectedEpochDay = it },
+            weeksWithNotes = weeksWithNotes,
             modifier = Modifier.fillMaxWidth()
         )
         ConfirmCancelRow(
@@ -685,6 +769,7 @@ private fun MondayDatePicker(
     languageCode: String,
     epochDay: Long,
     onEpochDayChanged: (Long) -> Unit,
+    weeksWithNotes: Set<Long> = emptySet(),
     modifier: Modifier = Modifier
 ) {
     var shownMonth by remember(epochDay) { mutableStateOf(LocalDate.ofEpochDay(epochDay).withDayOfMonth(1)) }
@@ -789,7 +874,17 @@ private fun MondayDatePicker(
         }
 
         repeat(6) { week ->
-            Row(modifier = Modifier.fillMaxWidth()) {
+            val rowMonday = first.minusDays(offset.toLong()).plusDays(week * 7L)
+            val weekHasNotes = weeksWithNotes.contains(rowMonday.toEpochDay())
+            val noteRowBg = if (weekHasNotes) {
+                androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+            } else Color.Transparent
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(noteRowBg, shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+            ) {
                 repeat(7) { day ->
                     val idx = week * 7 + day
                     val dayNum = idx - offset + 1

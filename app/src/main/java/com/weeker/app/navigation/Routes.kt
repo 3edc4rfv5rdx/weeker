@@ -21,9 +21,16 @@ object Routes {
     const val EVENT_EDIT_ID = "event_edit_id/{eventId}"
     const val EVENT_ID_ARG = "eventId"
 
+    const val WEEK_NOTES = "week_notes/{weekStart}"
+    const val WEEK_NOTES_ARG = "weekStart"
+
+    const val ALL_NOTES = "all_notes"
+    const val TEMPLATES = "templates"
+
     fun eventEditByIdRoute(eventId: Long) = "event_edit_id/$eventId"
 
     fun dayRoute(epochDay: Long) = "day/$epochDay"
     fun weekRoute(weekStart: Long) = "week/$weekStart"
     fun eventEditRoute(epochDay: Long) = "event_edit/$epochDay"
+    fun weekNotesRoute(weekStart: Long) = "week_notes/$weekStart"
 }
