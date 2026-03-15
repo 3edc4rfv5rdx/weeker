@@ -612,38 +612,54 @@ fun WeekerApp(container: AppContainer) {
                 },
                 containerColor = menuBg,
                 confirmButton = {
-                    Button(
-                        onClick = { showAboutDialog = false },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
-                            contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onPrimary
-                        )
-                    ) {
-                        Text(t("ok").ifBlank { "OK" }, fontSize = 18.sp)
-                    }
+                    WeekerButton(
+                        text = t("ok").ifBlank { "OK" },
+                        onClick = { showAboutDialog = false }
+                    )
                 }
             )
         }
 
         if (showRestoreWarning) {
-            AlertDialog(
-                onDismissRequest = { showRestoreWarning = false },
-                title = { Text(t("restore").titleCaseFirst(), fontSize = 22.sp) },
-                text = { Text(t("all current data will be replaced with backup data"), fontSize = 18.sp) },
-                confirmButton = {
-                    Button(onClick = {
-                        showRestoreWarning = false
-                        restoreLauncher.launch(arrayOf("*/*"))
-                    }) {
-                        Text(t("restore").titleCaseFirst())
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showRestoreWarning = false }) {
-                        Text(t("cancel").titleCaseFirst())
+            androidx.compose.ui.window.Dialog(onDismissRequest = { showRestoreWarning = false }) {
+                androidx.compose.material3.Surface(
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+                    tonalElevation = 6.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = t("restore").titleCaseFirst(),
+                            fontSize = 22.sp,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = t("all current data will be replaced with backup data"),
+                            fontSize = 18.sp,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+                        ) {
+                            WeekerButton(
+                                text = t("cancel"),
+                                onClick = { showRestoreWarning = false }
+                            )
+                            WeekerButton(
+                                text = t("restore"),
+                                onClick = {
+                                    showRestoreWarning = false
+                                    restoreLauncher.launch(arrayOf("*/*"))
+                                }
+                            )
+                        }
                     }
                 }
-            )
+            }
         }
 
         val moveTarget = moveEventTarget

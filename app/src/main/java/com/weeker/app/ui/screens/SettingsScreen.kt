@@ -104,13 +104,21 @@ fun SettingsScreen(
             onClick = onTemplates
         )
 
-        WeekerButton(
-            text = t("save"),
-            onClick = { onSave(selectedLanguage.value, selectedMode.value) },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        WeekerButton(text = t("cancel"), onClick = onBack, modifier = Modifier.fillMaxWidth())
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            WeekerButton(
+                text = t("cancel"),
+                onClick = onBack,
+                modifier = Modifier.weight(1f)
+            )
+            WeekerButton(
+                text = t("save"),
+                onClick = { onSave(selectedLanguage.value, selectedMode.value) },
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 
     if (showLanguageDialog) {

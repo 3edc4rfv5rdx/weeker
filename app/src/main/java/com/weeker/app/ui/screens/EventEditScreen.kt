@@ -221,13 +221,22 @@ fun EventEditScreen(
         if (isPastDay && !isEdit) {
             Text(text = t("cannot add events in past"), fontSize = 16.sp)
         }
-        WeekerButton(
-            text = t("save"),
-            onClick = { if (title.value.isNotBlank()) onSave(title.value.trim(), note.value.trim()) },
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            enabled = title.value.isNotBlank() && (isEdit || !isPastDay)
-        )
-        WeekerButton(text = t("cancel"), onClick = onCancel, modifier = Modifier.fillMaxWidth())
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            WeekerButton(
+                text = t("cancel"),
+                onClick = onCancel,
+                modifier = Modifier.weight(1f)
+            )
+            WeekerButton(
+                text = t("save"),
+                onClick = { if (title.value.isNotBlank()) onSave(title.value.trim(), note.value.trim()) },
+                modifier = Modifier.weight(1f),
+                enabled = title.value.isNotBlank() && (isEdit || !isPastDay)
+            )
+        }
     }
 }
 

@@ -2,6 +2,10 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
+## 0.6.20260315+158
+- F Unify button layout: cancel/save in one row, cancel always left, action always right
+- F Restore and About dialogs use WeekerButton for consistency
+
 ## 0.6.20260315+156
 - E Backup/restore includes all data: events, week notes, templates, settings
 - N Confirm dialog before restore with data loss warning
