@@ -2,6 +2,17 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
+## 0.6.20260315+145
+- N Templates screen: add/edit/delete templates, alphabetical sort
+- N Templates entry in Settings screen
+- N Template autocomplete in event title and comment fields (popup suggestions)
+- N "From template" button on event add/edit screen fills active field
+- N Confirm delete dialog for events in Day and Week screens
+- N Warning toast (orange) when trying to delete past events
+- F Settings: bold primary-colored section headers
+- F ConfirmDeleteNoteDialog supports custom title key
+- I i18n keys: delete event, cannot delete past events
+
 ## 0.6.20260314+127
 - N Week notes: add/edit/delete notes per week from Week and Day screens
 - N Notes button (N/N!) on Week screen header with indicator for existing notes

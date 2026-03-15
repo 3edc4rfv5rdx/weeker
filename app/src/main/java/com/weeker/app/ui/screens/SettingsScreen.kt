@@ -17,9 +17,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.core.theme.ThemeMode
+import androidx.compose.foundation.clickable
 import com.weeker.app.ui.components.AppMenuButton
 import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
@@ -38,6 +40,7 @@ fun SettingsScreen(
     onRestore: () -> Unit,
     onAbout: () -> Unit,
     onExit: () -> Unit,
+    onTemplates: () -> Unit,
     onSave: (String, ThemeMode) -> Unit,
     onBack: () -> Unit
 ) {
@@ -75,7 +78,7 @@ fun SettingsScreen(
         }
 
         item {
-            Text(text = t("language").titleCaseFirst(), fontSize = 24.sp)
+            Text(text = t("language").titleCaseFirst(), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
         }
 
         items(languages) { language ->
@@ -87,7 +90,7 @@ fun SettingsScreen(
         }
 
         item {
-            Text(text = t("mode").titleCaseFirst(), fontSize = 24.sp)
+            Text(text = t("mode").titleCaseFirst(), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
         }
 
         item {
@@ -104,6 +107,20 @@ fun SettingsScreen(
                 selected = selectedMode.value == ThemeMode.DARK,
                 onClick = { selectedMode.value = ThemeMode.DARK }
             )
+        }
+
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onTemplates)
+                    .padding(vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = t("templates").titleCaseFirst(), fontSize = 20.sp)
+                Text(text = ">", fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
 
         item {

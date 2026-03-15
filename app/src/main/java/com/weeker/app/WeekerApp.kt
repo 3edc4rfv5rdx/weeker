@@ -72,6 +72,7 @@ import com.weeker.app.ui.screens.OnboardingScreen
 import com.weeker.app.ui.screens.SettingsScreen
 import com.weeker.app.ui.screens.TodayScreen
 import com.weeker.app.ui.screens.AllNotesScreen
+import com.weeker.app.ui.screens.TemplatesScreen
 import com.weeker.app.ui.screens.WeekNotesScreen
 import com.weeker.app.ui.screens.WeekScreen
 import kotlinx.coroutines.Dispatchers
@@ -413,7 +414,8 @@ fun WeekerApp(container: AppContainer) {
                             navController.popBackStack()
                         }
                     },
-                    onCancel = { navController.popBackStack() }
+                    onCancel = { navController.popBackStack() },
+                    templatesFlow = container.eventTemplateRepository.observeAll()
                 )
             }
 
@@ -439,14 +441,15 @@ fun WeekerApp(container: AppContainer) {
                         onBackup = ::onBackupFromMenu,
                         onRestore = ::onRestoreFromMenu,
                         onAbout = ::onAboutFromMenu,
-                    onExit = ::onExitFromMenu,
+                        onExit = ::onExitFromMenu,
                         onSave = { title, note ->
                             scope.launch {
                                 container.eventRepository.updateEvent(event, title, note)
                                 navController.popBackStack()
                             }
                         },
-                        onCancel = { navController.popBackStack() }
+                        onCancel = { navController.popBackStack() },
+                        templatesFlow = container.eventTemplateRepository.observeAll()
                     )
                 }
             }
@@ -514,6 +517,7 @@ fun WeekerApp(container: AppContainer) {
                     onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
                     onExit = ::onExitFromMenu,
+                    onTemplates = { navController.navigate(Routes.TEMPLATES) },
                     onSave = { language, mode ->
                         scope.launch {
                             container.settingsRepository.setLanguage(language)
@@ -522,6 +526,29 @@ fun WeekerApp(container: AppContainer) {
                         }
                     },
                     onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Routes.TEMPLATES) {
+                TemplatesScreen(
+                    t = ::t,
+                    templatesFlow = container.eventTemplateRepository.observeAll(),
+                    onBack = ::goBack,
+                    onOpenSettings = ::onSettingsFromMenu,
+                    onAllNotes = ::onAllNotesFromMenu,
+                    onBackup = ::onBackupFromMenu,
+                    onRestore = ::onRestoreFromMenu,
+                    onAbout = ::onAboutFromMenu,
+                    onExit = ::onExitFromMenu,
+                    onAddTemplate = { title ->
+                        scope.launch { container.eventTemplateRepository.addTemplate(title) }
+                    },
+                    onUpdateTemplate = { template, title ->
+                        scope.launch { container.eventTemplateRepository.updateTemplate(template, title) }
+                    },
+                    onDeleteTemplate = { template ->
+                        scope.launch { container.eventTemplateRepository.deleteTemplate(template) }
+                    }
                 )
             }
 

@@ -18,6 +18,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,6 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.data.local.EventEntity
 import com.weeker.app.ui.components.AppMenuButton
+import com.weeker.app.ui.components.ConfirmDeleteNoteDialog
+import com.weeker.app.ui.components.WarningToast
 import com.weeker.app.ui.components.EventRow
 import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
@@ -63,6 +68,8 @@ fun TodayScreen(
     onOpenWeekPicker: () -> Unit,
     onOpenNotes: () -> Unit
 ) {
+    var deletingEvent by remember { mutableStateOf<EventEntity?>(null) }
+    var showWarning by remember { mutableStateOf(false) }
     val events by eventsFlow.collectAsState(initial = emptyList())
     val orderedEvents = events.sortedWith(compareBy<EventEntity> { it.isDone }.thenBy { it.sortOrder }.thenBy { it.id })
     val firstDoneIndex = orderedEvents.indexOfFirst { it.isDone }
@@ -151,7 +158,7 @@ fun TodayScreen(
                     t = t,
                     onToggleDone = { checked -> onToggleDone(event, checked) },
                     onEdit = onEditEvent,
-                    onDelete = onDeleteEvent,
+                    onDelete = if (epochDay >= LocalDate.now().toEpochDay()) {{ deletingEvent = it }} else {{ showWarning = true }},
                     onMoveTo = onMoveEvent,
                     onCopyTo = onCopyEvent,
                     onMoveUp = if (!event.isDone) ({ onMoveEventUp(event) }) else null,
@@ -164,6 +171,27 @@ fun TodayScreen(
                 )
             }
         }
+    }
+
+    val deleting = deletingEvent
+    if (deleting != null) {
+        ConfirmDeleteNoteDialog(
+            t = t,
+            noteText = deleting.title + if (deleting.note.isNotBlank()) "\n${deleting.note}" else "",
+            onDismiss = { deletingEvent = null },
+            onConfirm = {
+                onDeleteEvent(deleting)
+                deletingEvent = null
+            },
+            titleKey = "delete event"
+        )
+    }
+
+    if (showWarning) {
+        WarningToast(
+            text = t("cannot delete past events"),
+            onDismiss = { showWarning = false }
+        )
     }
 }
 

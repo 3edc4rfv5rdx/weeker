@@ -21,7 +21,8 @@ fun ConfirmDeleteNoteDialog(
     t: (String) -> String,
     noteText: String,
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
+    titleKey: String = "delete note"
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -34,7 +35,7 @@ fun ConfirmDeleteNoteDialog(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = t("delete note").titleCaseFirst(),
+                    text = t(titleKey).titleCaseFirst(),
                     fontSize = 22.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 )
