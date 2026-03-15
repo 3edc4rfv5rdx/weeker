@@ -2,6 +2,9 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
+## 0.6.20260315+147
+- F Auto-focus text field in note add/edit dialogs (WeekNotes, AllNotes)
+
 ## 0.6.20260315+145
 - N Templates screen: add/edit/delete templates, alphabetical sort
 - N Templates entry in Settings screen
