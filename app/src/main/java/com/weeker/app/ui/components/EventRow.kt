@@ -1,6 +1,7 @@
 package com.weeker.app.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -62,6 +64,8 @@ fun EventRow(
     val titleSize = if (compact) 18.sp else 22.sp
     val noteSize = if (compact) titleSize else 16.sp
     val rowSpacing = if (compact) 5.dp else 10.dp
+    val menuIconSize = if (compact) 20.dp else 24.dp
+    val menuTouchPadding = if (compact) 4.dp else 6.dp
 
     Box {
         Row(
@@ -143,6 +147,18 @@ fun EventRow(
                                 }
                             } else Modifier
                         )
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .clickable { menuExpanded = true }
+                    .padding(menuTouchPadding)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "Menu",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(menuIconSize)
                 )
             }
         }

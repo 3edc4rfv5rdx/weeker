@@ -2,6 +2,9 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
+## 0.6.20260315+159
+- F Add explicit menu button on event rows for discoverability
+
 ## 0.6.20260315+158
 - F Unify button layout: cancel/save in one row, cancel always left, action always right
 - F Restore and About dialogs use WeekerButton for consistency
