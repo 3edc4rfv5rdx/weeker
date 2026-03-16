@@ -2,6 +2,9 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
+## 0.6.20260316+161
+- F Center event row menu horizontally
+
 ## 0.6.20260315+159
 - F Add explicit menu button on event rows for discoverability
 

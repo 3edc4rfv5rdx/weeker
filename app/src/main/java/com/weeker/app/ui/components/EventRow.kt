@@ -6,11 +6,13 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DragHandle
@@ -34,6 +36,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.weeker.app.data.local.EventEntity
@@ -67,7 +70,11 @@ fun EventRow(
     val menuIconSize = if (compact) 20.dp else 24.dp
     val menuTouchPadding = if (compact) 4.dp else 6.dp
 
-    Box {
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val menuWidth = if (compact) 200.dp else 240.dp
+        val finalMenuWidth = if (maxWidth < menuWidth) maxWidth else menuWidth
+        val menuOffsetX = if (maxWidth > finalMenuWidth) (maxWidth - finalMenuWidth) / 2 else 0.dp
+
         Row(
             modifier = modifier
                 .fillMaxWidth()
@@ -166,7 +173,10 @@ fun EventRow(
         DropdownMenu(
             expanded = menuExpanded,
             onDismissRequest = { menuExpanded = false },
-            modifier = Modifier.background(menuBg)
+            offset = DpOffset(x = menuOffsetX, y = 0.dp),
+            modifier = Modifier
+                .width(finalMenuWidth)
+                .background(menuBg)
         ) {
             DropdownMenuItem(
                 text = { Text(t("edit").titleCaseFirst(), color = menuText, fontSize = 20.sp) },
