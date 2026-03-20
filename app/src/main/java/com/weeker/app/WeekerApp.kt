@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -250,6 +251,14 @@ fun WeekerApp(container: AppContainer) {
 
     fun onRestoreFromMenu() {
         if (restoreUseDialog) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
+                val intent = android.content.Intent(
+                    android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                    Uri.parse("package:${context.packageName}")
+                )
+                context.startActivity(intent)
+                return
+            }
             scope.launch(Dispatchers.IO) {
                 val backups = listBackupFiles(context)
                 launch(Dispatchers.Main) {
@@ -709,8 +718,14 @@ fun WeekerApp(container: AppContainer) {
 
         val backupList = backupListForDialog
         if (backupList != null) {
-            androidx.compose.ui.window.Dialog(onDismissRequest = { backupListForDialog = null }) {
+            androidx.compose.ui.window.Dialog(
+                onDismissRequest = { backupListForDialog = null },
+                properties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
                 androidx.compose.material3.Surface(
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .fillMaxHeight(0.85f),
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
                     color = androidx.compose.material3.MaterialTheme.colorScheme.surface,
                     tonalElevation = 6.dp
@@ -725,7 +740,7 @@ fun WeekerApp(container: AppContainer) {
                             color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
                         )
                         LazyColumn(
-                            modifier = Modifier.heightIn(max = 400.dp),
+                            modifier = Modifier.weight(1f),
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             items(backupList) { entry ->
@@ -1204,48 +1219,18 @@ private data class BackupFileEntry(val uri: Uri, val label: String)
 
 private fun listBackupFiles(context: Context): List<BackupFileEntry> {
     val results = mutableListOf<BackupFileEntry>()
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        val collection = MediaStore.Files.getContentUri("external")
-        val projection = arrayOf(
-            MediaStore.MediaColumns._ID,
-            MediaStore.MediaColumns.DISPLAY_NAME,
-            MediaStore.MediaColumns.RELATIVE_PATH
-        )
-        val selection = "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ? AND ${MediaStore.MediaColumns.DISPLAY_NAME} LIKE ?"
-        val selectionArgs = arrayOf(
-            "${Environment.DIRECTORY_DOCUMENTS}/Weeker/%",
-            "bak-%.db"
-        )
-        context.contentResolver.query(
-            collection, projection, selection, selectionArgs,
-            "${MediaStore.MediaColumns.DATE_MODIFIED} DESC"
-        )?.use { cursor ->
-            val idIdx = cursor.getColumnIndex(MediaStore.MediaColumns._ID)
-            val nameIdx = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
-            val pathIdx = cursor.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)
-            while (cursor.moveToNext()) {
-                val id = cursor.getLong(idIdx)
-                val name = cursor.getString(nameIdx)
-                val path = cursor.getString(pathIdx)
-                val uri = ContentUris.withAppendedId(collection, id)
-                val folder = path.trimEnd('/').substringAfterLast('/')
-                results.add(BackupFileEntry(uri, formatBackupLabel(folder, name)))
-            }
-        }
-    } else {
-        @Suppress("DEPRECATION")
-        val documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-        val weekerDir = File(documentsDir, "Weeker")
-        if (weekerDir.exists()) {
-            weekerDir.listFiles()?.sortedDescending()?.forEach { dayDir ->
-                if (dayDir.isDirectory) {
-                    dayDir.listFiles()
-                        ?.filter { it.extension.lowercase(Locale.US) == "db" && it.name.startsWith("bak-") }
-                        ?.sortedDescending()
-                        ?.forEach { file ->
-                            results.add(BackupFileEntry(Uri.fromFile(file), formatBackupLabel(dayDir.name, file.name)))
-                        }
-                }
+    @Suppress("DEPRECATION")
+    val documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+    val weekerDir = File(documentsDir, "Weeker")
+    if (weekerDir.exists()) {
+        weekerDir.listFiles()?.sortedDescending()?.forEach { dayDir ->
+            if (dayDir.isDirectory) {
+                dayDir.listFiles()
+                    ?.filter { it.extension.lowercase(Locale.US) == "db" && it.name.startsWith("bak-") }
+                    ?.sortedDescending()
+                    ?.forEach { file ->
+                        results.add(BackupFileEntry(Uri.fromFile(file), formatBackupLabel(dayDir.name, file.name)))
+                    }
             }
         }
     }
