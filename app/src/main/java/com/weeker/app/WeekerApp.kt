@@ -18,12 +18,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -113,6 +116,7 @@ fun WeekerApp(container: AppContainer) {
     val selectedThemeModePref by container.settingsRepository.themeModeFlow.collectAsState(initial = null)
 
     val allowEditPast by container.settingsRepository.allowEditPastFlow.collectAsState(initial = false)
+    val restoreUseDialog by container.settingsRepository.restoreUseDialogFlow.collectAsState(initial = true)
     val weeksWithNotes by container.weekNoteRepository.observeWeeksWithNotes().collectAsState(initial = emptySet())
 
     val defaultLanguage = remember { container.localizationManager.defaultLanguage() }
@@ -135,13 +139,10 @@ fun WeekerApp(container: AppContainer) {
     val appVersion = BuildConfig.VERSION_NAME
     val appBuild = BuildConfig.VERSION_CODE
     var showRestoreWarning by remember { mutableStateOf(false) }
-    val restoreLauncher = rememberLauncherForActivityResult(OpenDocument()) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        val fileName = queryDisplayName(context, uri)
-        if (fileName.isNullOrBlank() || !fileName.lowercase(Locale.US).endsWith(".db")) {
-            errorToastText = t("choose db backup file")
-            return@rememberLauncherForActivityResult
-        }
+    var backupListForDialog by remember { mutableStateOf<List<BackupFileEntry>?>(null) }
+    var restoreTargetUri by remember { mutableStateOf<Uri?>(null) }
+
+    fun performRestore(uri: Uri) {
         scope.launch(Dispatchers.IO) {
             runCatching {
                 context.contentResolver.takePersistableUriPermission(
@@ -165,6 +166,16 @@ fun WeekerApp(container: AppContainer) {
                 }
             }
         }
+    }
+
+    val restoreLauncher = rememberLauncherForActivityResult(OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val fileName = queryDisplayName(context, uri)
+        if (fileName.isNullOrBlank() || !fileName.lowercase(Locale.US).endsWith(".db")) {
+            errorToastText = t("choose db backup file")
+            return@rememberLauncherForActivityResult
+        }
+        performRestore(uri)
     }
 
     fun goBack() {
@@ -238,7 +249,20 @@ fun WeekerApp(container: AppContainer) {
     }
 
     fun onRestoreFromMenu() {
-        showRestoreWarning = true
+        if (restoreUseDialog) {
+            scope.launch(Dispatchers.IO) {
+                val backups = listBackupFiles(context)
+                launch(Dispatchers.Main) {
+                    if (backups.isEmpty()) {
+                        warningToastText = t("no backups found")
+                    } else {
+                        backupListForDialog = backups
+                    }
+                }
+            }
+        } else {
+            showRestoreWarning = true
+        }
     }
 
     fun onAboutFromMenu() {
@@ -550,6 +574,10 @@ fun WeekerApp(container: AppContainer) {
                     onAllowEditPastChanged = { allow ->
                         scope.launch { container.settingsRepository.setAllowEditPast(allow) }
                     },
+                    restoreUseDialog = restoreUseDialog,
+                    onRestoreUseDialogChanged = { use ->
+                        scope.launch { container.settingsRepository.setRestoreUseDialog(use) }
+                    },
                     onLanguageChanged = { language ->
                         scope.launch { container.settingsRepository.setLanguage(language) }
                     },
@@ -671,6 +699,104 @@ fun WeekerApp(container: AppContainer) {
                                 onClick = {
                                     showRestoreWarning = false
                                     restoreLauncher.launch(arrayOf("*/*"))
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        val backupList = backupListForDialog
+        if (backupList != null) {
+            androidx.compose.ui.window.Dialog(onDismissRequest = { backupListForDialog = null }) {
+                androidx.compose.material3.Surface(
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+                    tonalElevation = 6.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = t("choose backup").titleCaseFirst(),
+                            fontSize = 22.sp,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+                        )
+                        LazyColumn(
+                            modifier = Modifier.heightIn(max = 400.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            items(backupList) { entry ->
+                                androidx.compose.material3.Card(
+                                    onClick = {
+                                        backupListForDialog = null
+                                        restoreTargetUri = entry.uri
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = androidx.compose.material3.CardDefaults.cardColors(
+                                        containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                ) {
+                                    Text(
+                                        text = entry.label,
+                                        modifier = Modifier.padding(12.dp),
+                                        fontSize = 20.sp
+                                    )
+                                }
+                            }
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            WeekerButton(
+                                text = t("cancel"),
+                                onClick = { backupListForDialog = null }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        val targetUri = restoreTargetUri
+        if (targetUri != null) {
+            androidx.compose.ui.window.Dialog(onDismissRequest = { restoreTargetUri = null }) {
+                androidx.compose.material3.Surface(
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.surface,
+                    tonalElevation = 6.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = t("restore").titleCaseFirst(),
+                            fontSize = 22.sp,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = t("all current data will be replaced with backup data"),
+                            fontSize = 18.sp,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+                        ) {
+                            WeekerButton(
+                                text = t("cancel"),
+                                onClick = { restoreTargetUri = null }
+                            )
+                            WeekerButton(
+                                text = t("restore"),
+                                onClick = {
+                                    val uri = restoreTargetUri
+                                    restoreTargetUri = null
+                                    if (uri != null) performRestore(uri)
                                 }
                             )
                         }
@@ -1071,6 +1197,74 @@ private fun weekdayLabels(languageCode: String): List<String> {
         "ru" -> listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс")
         "uk" -> listOf("Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд")
         else -> listOf("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su")
+    }
+}
+
+private data class BackupFileEntry(val uri: Uri, val label: String)
+
+private fun listBackupFiles(context: Context): List<BackupFileEntry> {
+    val results = mutableListOf<BackupFileEntry>()
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val collection = MediaStore.Files.getContentUri("external")
+        val projection = arrayOf(
+            MediaStore.MediaColumns._ID,
+            MediaStore.MediaColumns.DISPLAY_NAME,
+            MediaStore.MediaColumns.RELATIVE_PATH
+        )
+        val selection = "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ? AND ${MediaStore.MediaColumns.DISPLAY_NAME} LIKE ?"
+        val selectionArgs = arrayOf(
+            "${Environment.DIRECTORY_DOCUMENTS}/Weeker/%",
+            "bak-%.db"
+        )
+        context.contentResolver.query(
+            collection, projection, selection, selectionArgs,
+            "${MediaStore.MediaColumns.DATE_MODIFIED} DESC"
+        )?.use { cursor ->
+            val idIdx = cursor.getColumnIndex(MediaStore.MediaColumns._ID)
+            val nameIdx = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
+            val pathIdx = cursor.getColumnIndex(MediaStore.MediaColumns.RELATIVE_PATH)
+            while (cursor.moveToNext()) {
+                val id = cursor.getLong(idIdx)
+                val name = cursor.getString(nameIdx)
+                val path = cursor.getString(pathIdx)
+                val uri = ContentUris.withAppendedId(collection, id)
+                val folder = path.trimEnd('/').substringAfterLast('/')
+                results.add(BackupFileEntry(uri, formatBackupLabel(folder, name)))
+            }
+        }
+    } else {
+        @Suppress("DEPRECATION")
+        val documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+        val weekerDir = File(documentsDir, "Weeker")
+        if (weekerDir.exists()) {
+            weekerDir.listFiles()?.sortedDescending()?.forEach { dayDir ->
+                if (dayDir.isDirectory) {
+                    dayDir.listFiles()
+                        ?.filter { it.extension.lowercase(Locale.US) == "db" && it.name.startsWith("bak-") }
+                        ?.sortedDescending()
+                        ?.forEach { file ->
+                            results.add(BackupFileEntry(Uri.fromFile(file), formatBackupLabel(dayDir.name, file.name)))
+                        }
+                }
+            }
+        }
+    }
+    return results
+}
+
+private fun formatBackupLabel(folder: String, fileName: String): String {
+    val datePart = folder.removePrefix("w")
+    val timePart = fileName.removePrefix("bak-").removeSuffix(".db")
+    return try {
+        val y = datePart.substring(0, 4)
+        val m = datePart.substring(4, 6)
+        val d = datePart.substring(6, 8)
+        val h = timePart.substring(0, 2)
+        val min = timePart.substring(2, 4)
+        val s = timePart.substring(4, 6)
+        "$y-$m-$d  $h:$min:$s"
+    } catch (_: Exception) {
+        "$folder / $fileName"
     }
 }
 

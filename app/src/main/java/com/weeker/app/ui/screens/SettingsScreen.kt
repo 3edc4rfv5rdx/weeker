@@ -48,6 +48,8 @@ fun SettingsScreen(
     onTemplates: () -> Unit,
     allowEditPast: Boolean,
     onAllowEditPastChanged: (Boolean) -> Unit,
+    restoreUseDialog: Boolean,
+    onRestoreUseDialogChanged: (Boolean) -> Unit,
     onLanguageChanged: (String) -> Unit,
     onModeChanged: (ThemeMode) -> Unit
 ) {
@@ -135,6 +137,21 @@ fun SettingsScreen(
             value = "",
             onClick = onRestore
         )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onRestoreUseDialogChanged(!restoreUseDialog) }
+                .padding(vertical = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = t("restore from list").titleCaseFirst(), fontSize = 20.sp)
+            Switch(
+                checked = restoreUseDialog,
+                onCheckedChange = onRestoreUseDialogChanged
+            )
+        }
     }
 
     if (showLanguageDialog) {

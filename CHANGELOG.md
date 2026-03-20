@@ -2,6 +2,9 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
+## 0.6.20260320+185
+- N Add restore from backup list dialog with setting to switch between dialog and file picker
+
 ## 0.6.20260320+183
 - N Split backup into separate DB and CSV operations
 
