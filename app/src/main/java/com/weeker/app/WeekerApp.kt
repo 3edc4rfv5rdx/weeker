@@ -11,7 +11,6 @@ import android.os.Build
 import android.os.Environment
 import android.os.SystemClock
 import android.provider.MediaStore
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
@@ -66,6 +65,10 @@ import com.weeker.app.data.local.WeekNoteEntity
 import com.weeker.app.data.repository.EventRepository
 import com.weeker.app.navigation.Routes
 import com.weeker.app.ui.components.AppMenuButton
+import com.weeker.app.ui.components.BlueToast
+import com.weeker.app.ui.components.GreenToast
+import com.weeker.app.ui.components.OrangeToast
+import com.weeker.app.ui.components.RedToast
 import com.weeker.app.ui.components.WeekerBackButton
 import com.weeker.app.ui.components.WeekerButton
 import com.weeker.app.ui.components.titleCaseFirst
@@ -96,6 +99,12 @@ fun WeekerApp(container: AppContainer) {
     var showAboutDialog by remember { mutableStateOf(false) }
     var moveEventTarget by remember { mutableStateOf<EventEntity?>(null) }
     var copyEventTarget by remember { mutableStateOf<EventEntity?>(null) }
+
+    // Toast messages
+    var successToastText by remember { mutableStateOf<String?>(null) }
+    var errorToastText by remember { mutableStateOf<String?>(null) }
+    var warningToastText by remember { mutableStateOf<String?>(null) }
+    var infoToastText by remember { mutableStateOf<String?>(null) }
 
     val onboardingDoneState = produceState<Boolean?>(initialValue = null) {
         container.settingsRepository.onboardingDoneFlow.collect { value = it }
@@ -130,7 +139,7 @@ fun WeekerApp(container: AppContainer) {
         if (uri == null) return@rememberLauncherForActivityResult
         val fileName = queryDisplayName(context, uri)
         if (fileName.isNullOrBlank() || !fileName.lowercase(Locale.US).endsWith(".db")) {
-            Toast.makeText(context, t("choose db backup file"), Toast.LENGTH_SHORT).show()
+            errorToastText = t("choose db backup file")
             return@rememberLauncherForActivityResult
         }
         scope.launch(Dispatchers.IO) {
@@ -148,11 +157,11 @@ fun WeekerApp(container: AppContainer) {
                 container.settingsRepository.restoreSettings(backup.settings)
             }.onSuccess {
                 launch(Dispatchers.Main) {
-                    Toast.makeText(context, t("restore complete"), Toast.LENGTH_SHORT).show()
+                    successToastText = t("restore complete")
                 }
             }.onFailure {
                 launch(Dispatchers.Main) {
-                    Toast.makeText(context, t("restore failed"), Toast.LENGTH_SHORT).show()
+                    errorToastText = t("restore failed")
                 }
             }
         }
@@ -173,7 +182,7 @@ fun WeekerApp(container: AppContainer) {
             (context as? Activity)?.finish()
         } else {
             lastExitTapAt = now
-            Toast.makeText(context, t("press back again to exit"), Toast.LENGTH_SHORT).show()
+            infoToastText = t("press back again to exit")
         }
     }
 
@@ -201,11 +210,11 @@ fun WeekerApp(container: AppContainer) {
                 folder
             }.onSuccess { folderPath ->
                 launch(Dispatchers.Main) {
-                    Toast.makeText(context, "${t("backup created")}: $folderPath", Toast.LENGTH_SHORT).show()
+                    successToastText = "${t("backup created")}: $folderPath"
                 }
             }.onFailure {
                 launch(Dispatchers.Main) {
-                    Toast.makeText(context, t("backup failed"), Toast.LENGTH_SHORT).show()
+                    errorToastText = t("backup failed")
                 }
             }
         }
@@ -666,7 +675,7 @@ fun WeekerApp(container: AppContainer) {
                         runCatching {
                             container.eventRepository.moveEventToDate(moveTarget, newEpochDay)
                         }.onFailure {
-                            Toast.makeText(context, t("cannot add events in past"), Toast.LENGTH_SHORT).show()
+                            errorToastText = t("cannot add events in past")
                         }
                     }
                     moveEventTarget = null
@@ -688,12 +697,25 @@ fun WeekerApp(container: AppContainer) {
                         runCatching {
                             container.eventRepository.copyEventToDate(copyTarget, newEpochDay)
                         }.onFailure {
-                            Toast.makeText(context, t("cannot add events in past"), Toast.LENGTH_SHORT).show()
+                            errorToastText = t("cannot add events in past")
                         }
                     }
                     copyEventTarget = null
                 }
             )
+        }
+
+        successToastText?.let { text ->
+            GreenToast(text = text, onDismiss = { successToastText = null })
+        }
+        errorToastText?.let { text ->
+            RedToast(text = text, onDismiss = { errorToastText = null })
+        }
+        warningToastText?.let { text ->
+            OrangeToast(text = text, onDismiss = { warningToastText = null })
+        }
+        infoToastText?.let { text ->
+            BlueToast(text = text, onDismiss = { infoToastText = null })
         }
     }
 }

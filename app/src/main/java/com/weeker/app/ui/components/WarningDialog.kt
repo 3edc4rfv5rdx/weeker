@@ -18,12 +18,15 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
 @Composable
-fun WarningToast(
+fun AppToast(
     text: String,
+    backgroundColor: Color,
+    textColor: Color = Color.White,
+    durationMs: Long = 2000,
     onDismiss: () -> Unit
 ) {
-    LaunchedEffect(Unit) {
-        delay(2000)
+    LaunchedEffect(text) {
+        delay(durationMs)
         onDismiss()
     }
     Box(
@@ -32,7 +35,7 @@ fun WarningToast(
     ) {
         Surface(
             shape = RoundedCornerShape(12.dp),
-            color = Color(0xFFFF9800),
+            color = backgroundColor,
             shadowElevation = 6.dp,
             modifier = Modifier
                 .fillMaxWidth()
@@ -40,11 +43,36 @@ fun WarningToast(
         ) {
             Text(
                 text = text,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                fontSize = 20.sp,
+                color = textColor,
                 modifier = Modifier.padding(16.dp)
             )
         }
     }
+}
+
+@Composable
+fun RedToast(text: String, onDismiss: () -> Unit) {
+    AppToast(text = text, backgroundColor = Color(0xFFD32F2F), durationMs = 4000, onDismiss = onDismiss)
+}
+
+@Composable
+fun GreenToast(text: String, onDismiss: () -> Unit) {
+    AppToast(text = text, backgroundColor = Color(0xFF388E3C), onDismiss = onDismiss)
+}
+
+@Composable
+fun OrangeToast(text: String, onDismiss: () -> Unit) {
+    AppToast(text = text, backgroundColor = Color(0xFFFF9800), textColor = Color.Black, onDismiss = onDismiss)
+}
+
+@Composable
+fun BlueToast(text: String, onDismiss: () -> Unit) {
+    AppToast(text = text, backgroundColor = Color(0xFF1976D2), onDismiss = onDismiss)
+}
+
+// Keep for backward compatibility
+@Composable
+fun WarningToast(text: String, onDismiss: () -> Unit) {
+    OrangeToast(text = text, onDismiss = onDismiss)
 }
