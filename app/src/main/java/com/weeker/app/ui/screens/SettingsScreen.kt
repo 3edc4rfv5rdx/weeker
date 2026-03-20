@@ -41,6 +41,7 @@ fun SettingsScreen(
     onOpenSettings: () -> Unit,
     onAllNotes: () -> Unit = {},
     onBackup: () -> Unit,
+    onBackupToCsv: () -> Unit,
     onRestore: () -> Unit,
     onAbout: () -> Unit,
     onExit: () -> Unit,
@@ -121,6 +122,12 @@ fun SettingsScreen(
             label = t("backup").titleCaseFirst(),
             value = "",
             onClick = onBackup
+        )
+
+        SettingsRow(
+            label = t("backup to csv").titleCaseFirst(),
+            value = "",
+            onClick = onBackupToCsv
         )
 
         SettingsRow(

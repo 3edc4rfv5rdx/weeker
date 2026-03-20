@@ -20,7 +20,7 @@ fi
 
 dst="weeker-${build}.apkx"
 
-ln -f "$apk" "$dst" 2>/dev/null || cp "$apk" "$dst"
+ln -sf "$apk" "$dst" 2>/dev/null || cp "$apk" "$dst"
 
 echo "$(basename "$apk") -> $dst"
 

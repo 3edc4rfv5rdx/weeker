@@ -205,12 +205,29 @@ fun WeekerApp(container: AppContainer) {
                 val notes = container.weekNoteRepository.exportNotes()
                 val templates = container.eventTemplateRepository.exportTemplates()
                 val settings = container.settingsRepository.exportSettings()
-                val folder = writePublicBackupFiles(context, events, notes, templates, settings)
+                val folder = writePublicBackupDb(context, events, notes, templates, settings)
                 cleanupLegacyJsonBackups(context.filesDir)
                 folder
             }.onSuccess { folderPath ->
                 launch(Dispatchers.Main) {
                     successToastText = "${t("backup created")}: $folderPath"
+                }
+            }.onFailure {
+                launch(Dispatchers.Main) {
+                    errorToastText = t("backup failed")
+                }
+            }
+        }
+    }
+
+    fun onBackupToCsvFromMenu() {
+        scope.launch(Dispatchers.IO) {
+            runCatching {
+                val events = container.eventRepository.exportEvents()
+                writePublicBackupCsv(context, events)
+            }.onSuccess { folderPath ->
+                launch(Dispatchers.Main) {
+                    successToastText = "${t("csv backup created")}: $folderPath"
                 }
             }.onFailure {
                 launch(Dispatchers.Main) {
@@ -526,6 +543,7 @@ fun WeekerApp(container: AppContainer) {
                     onAbout = ::onAboutFromMenu,
                     onExit = ::onExitFromMenu,
                     onBackup = ::onBackupFromMenu,
+                    onBackupToCsv = ::onBackupToCsvFromMenu,
                     onRestore = ::onRestoreFromMenu,
                     onTemplates = { navController.navigate(Routes.TEMPLATES) },
                     allowEditPast = allowEditPast,
@@ -1056,23 +1074,34 @@ private fun weekdayLabels(languageCode: String): List<String> {
     }
 }
 
-private fun writePublicBackupFiles(
+private data class BackupFolderInfo(val dayFolder: String, val timeStamp: String)
+
+private fun createBackupFolderInfo(): BackupFolderInfo {
+    val dayFolder = "w" + SimpleDateFormat("yyyyMMdd", Locale.US).format(Date())
+    val timeStamp = SimpleDateFormat("HHmmss", Locale.US).format(Date())
+    return BackupFolderInfo(dayFolder, timeStamp)
+}
+
+private fun writePublicBackupDb(
     context: Context,
     events: List<EventEntity>,
     notes: List<WeekNoteEntity>,
     templates: List<EventTemplateEntity>,
     settings: Map<String, String>
 ): String {
-    val dayFolder = "w" + SimpleDateFormat("yyyyMMdd", Locale.US).format(Date())
-    val timeStamp = SimpleDateFormat("HHmmss", Locale.US).format(Date())
-    val dbFileName = "bak-$timeStamp.db"
-    val csvFileName = "bak-$timeStamp.csv"
+    val info = createBackupFolderInfo()
+    val dbFileName = "bak-${info.timeStamp}.db"
     val dbBytes = buildBackupDbBytes(context.cacheDir, events, notes, templates, settings)
-    val csvBytes = buildBackupCsv(events).toByteArray(Charsets.UTF_8)
+    writeToDocumentsWeeker(context, info.dayFolder, dbFileName, "application/vnd.sqlite3", dbBytes)
+    return "Documents/Weeker/${info.dayFolder}"
+}
 
-    writeToDocumentsWeeker(context, dayFolder, dbFileName, "application/vnd.sqlite3", dbBytes)
-    writeToDocumentsWeeker(context, dayFolder, csvFileName, "text/csv", csvBytes)
-    return "Documents/Weeker/$dayFolder"
+private fun writePublicBackupCsv(context: Context, events: List<EventEntity>): String {
+    val info = createBackupFolderInfo()
+    val csvFileName = "bak-${info.timeStamp}.csv"
+    val csvBytes = buildBackupCsv(events).toByteArray(Charsets.UTF_8)
+    writeToDocumentsWeeker(context, info.dayFolder, csvFileName, "text/csv", csvBytes)
+    return "Documents/Weeker/${info.dayFolder}"
 }
 
 private fun buildBackupDbBytes(
