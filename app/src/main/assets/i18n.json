@@ -1,6 +1,6 @@
 {
-  "defaultLanguage": "uk",
-  "languages": ["uk", "en", "ru"],
+  "defaultLanguage": "en",
+  "languages": ["en", "uk","ru"],
   "strings": {
     "app name": {
         "uk": "вікер",

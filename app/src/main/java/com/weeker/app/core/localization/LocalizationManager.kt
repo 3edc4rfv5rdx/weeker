@@ -11,7 +11,7 @@ class LocalizationManager(context: Context) {
     init {
         val raw = context.assets.open("i18n.json").bufferedReader().use { it.readText() }
         val root = JSONObject(raw)
-        defaultLanguage = root.optString("defaultLanguage", "uk")
+        defaultLanguage = root.optString("defaultLanguage", "en")
 
         val list = mutableListOf<String>()
         val languagesArray = root.optJSONArray("languages")

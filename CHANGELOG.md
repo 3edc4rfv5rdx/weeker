@@ -2,6 +2,9 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
+## 0.6.20260320+191
+- F Set default language to English and reorder languages to en, uk, ru
+
 ## 0.6.20260320+190
 - R Remove dead theme palette code from SettingsRepository and WeekerApp
 
