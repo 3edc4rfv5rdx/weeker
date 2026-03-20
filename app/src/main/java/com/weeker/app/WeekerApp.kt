@@ -541,14 +541,12 @@ fun WeekerApp(container: AppContainer) {
                     onAllowEditPastChanged = { allow ->
                         scope.launch { container.settingsRepository.setAllowEditPast(allow) }
                     },
-                    onSave = { language, mode ->
-                        scope.launch {
-                            container.settingsRepository.setLanguage(language)
-                            container.settingsRepository.setThemeMode(mode.id)
-                            navController.popBackStack()
-                        }
+                    onLanguageChanged = { language ->
+                        scope.launch { container.settingsRepository.setLanguage(language) }
                     },
-                    onBack = { navController.popBackStack() }
+                    onModeChanged = { mode ->
+                        scope.launch { container.settingsRepository.setThemeMode(mode.id) }
+                    }
                 )
             }
 

@@ -2,8 +2,9 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
-## 0.6.20260320+172
+## 0.6.20260320+173
 - N Add setting to allow editing past days (add, delete, move, copy events)
+- F Remove save/cancel buttons from settings, apply changes instantly
 
 ## 0.6.20260316+161
 - F Center event row menu horizontally

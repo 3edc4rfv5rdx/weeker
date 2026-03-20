@@ -29,7 +29,6 @@ import androidx.compose.ui.window.Dialog
 import com.weeker.app.core.theme.ThemeMode
 import com.weeker.app.ui.components.AppMenuButton
 import com.weeker.app.ui.components.WeekerBackButton
-import com.weeker.app.ui.components.WeekerButton
 import com.weeker.app.ui.components.titleCaseFirst
 
 @Composable
@@ -48,15 +47,13 @@ fun SettingsScreen(
     onTemplates: () -> Unit,
     allowEditPast: Boolean,
     onAllowEditPastChanged: (Boolean) -> Unit,
-    onSave: (String, ThemeMode) -> Unit,
-    onBack: () -> Unit
+    onLanguageChanged: (String) -> Unit,
+    onModeChanged: (ThemeMode) -> Unit
 ) {
-    val selectedLanguage = remember { mutableStateOf(currentLanguage) }
-    val selectedMode = remember { mutableStateOf(currentMode) }
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showModeDialog by remember { mutableStateOf(false) }
 
-    val modeLabel = when (selectedMode.value) {
+    val modeLabel = when (currentMode) {
         ThemeMode.LIGHT -> t("light").titleCaseFirst()
         ThemeMode.DARK -> t("dark").titleCaseFirst()
     }
@@ -91,7 +88,7 @@ fun SettingsScreen(
 
         SettingsRow(
             label = t("language").titleCaseFirst(),
-            value = selectedLanguage.value,
+            value = currentLanguage,
             onClick = { showLanguageDialog = true }
         )
 
@@ -121,31 +118,15 @@ fun SettingsScreen(
                 onCheckedChange = onAllowEditPastChanged
             )
         }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            WeekerButton(
-                text = t("cancel"),
-                onClick = onBack,
-                modifier = Modifier.weight(1f)
-            )
-            WeekerButton(
-                text = t("save"),
-                onClick = { onSave(selectedLanguage.value, selectedMode.value) },
-                modifier = Modifier.weight(1f)
-            )
-        }
     }
 
     if (showLanguageDialog) {
         SelectDialog(
             title = t("language").titleCaseFirst(),
             options = languages,
-            selected = selectedLanguage.value,
+            selected = currentLanguage,
             onSelect = {
-                selectedLanguage.value = it
+                onLanguageChanged(it)
                 showLanguageDialog = false
             },
             onDismiss = { showLanguageDialog = false }
@@ -157,9 +138,9 @@ fun SettingsScreen(
             title = t("mode").titleCaseFirst(),
             options = listOf(ThemeMode.LIGHT.id, ThemeMode.DARK.id),
             optionLabels = listOf(t("light").titleCaseFirst(), t("dark").titleCaseFirst()),
-            selected = selectedMode.value.id,
+            selected = currentMode.id,
             onSelect = {
-                selectedMode.value = if (it == ThemeMode.LIGHT.id) ThemeMode.LIGHT else ThemeMode.DARK
+                onModeChanged(if (it == ThemeMode.LIGHT.id) ThemeMode.LIGHT else ThemeMode.DARK)
                 showModeDialog = false
             },
             onDismiss = { showModeDialog = false }
