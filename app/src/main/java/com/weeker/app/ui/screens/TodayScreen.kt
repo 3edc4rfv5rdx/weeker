@@ -48,6 +48,7 @@ fun TodayScreen(
     t: (String) -> String,
     epochDay: Long = LocalDate.now().toEpochDay(),
     eventsFlow: Flow<List<EventEntity>>,
+    allowEditPast: Boolean = false,
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
     onAllNotes: () -> Unit = {},
@@ -75,6 +76,7 @@ fun TodayScreen(
     val firstDoneIndex = orderedEvents.indexOfFirst { it.isDone }
     val undoneCount = if (firstDoneIndex == -1) orderedEvents.size else firstDoneIndex
     val displayDate = LocalDate.ofEpochDay(epochDay)
+    val canEdit = epochDay >= LocalDate.now().toEpochDay() || allowEditPast
     val isToday = epochDay == LocalDate.now().toEpochDay()
     val todayText = displayDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
     val isLight = MaterialTheme.colorScheme.surface.luminance() > 0.5f
@@ -143,7 +145,7 @@ fun TodayScreen(
                 text = t("add"),
                 onClick = onAddEvent,
                 modifier = Modifier.weight(1f),
-                enabled = epochDay >= LocalDate.now().toEpochDay()
+                enabled = canEdit
             )
         }
 
@@ -158,7 +160,7 @@ fun TodayScreen(
                     t = t,
                     onToggleDone = { checked -> onToggleDone(event, checked) },
                     onEdit = onEditEvent,
-                    onDelete = if (epochDay >= LocalDate.now().toEpochDay()) {{ deletingEvent = it }} else {{ showWarning = true }},
+                    onDelete = if (canEdit) {{ deletingEvent = it }} else {{ showWarning = true }},
                     onMoveTo = onMoveEvent,
                     onCopyTo = onCopyEvent,
                     onMoveUp = if (!event.isDone) ({ onMoveEventUp(event) }) else null,

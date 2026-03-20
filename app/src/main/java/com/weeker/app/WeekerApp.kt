@@ -103,6 +103,7 @@ fun WeekerApp(container: AppContainer) {
     val selectedLanguagePref by container.settingsRepository.languageFlow.collectAsState(initial = null)
     val selectedThemeModePref by container.settingsRepository.themeModeFlow.collectAsState(initial = null)
 
+    val allowEditPast by container.settingsRepository.allowEditPastFlow.collectAsState(initial = false)
     val weeksWithNotes by container.weekNoteRepository.observeWeeksWithNotes().collectAsState(initial = emptySet())
 
     val defaultLanguage = remember { container.localizationManager.defaultLanguage() }
@@ -226,6 +227,10 @@ fun WeekerApp(container: AppContainer) {
         exitFromAnyScreenByDoubleTap()
     }
 
+    LaunchedEffect(allowEditPast) {
+        container.eventRepository.allowEditPast = allowEditPast
+    }
+
     LaunchedEffect(selectedLanguage) {
         val localeTag = when (selectedLanguage) {
             "en" -> "en-GB"
@@ -273,6 +278,7 @@ fun WeekerApp(container: AppContainer) {
                 TodayScreen(
                     t = ::t,
                     eventsFlow = container.eventRepository.observeDay(todayEpochDay),
+                    allowEditPast = allowEditPast,
                     onBack = ::exitFromAnyScreenByDoubleTap,
                     onOpenSettings = ::onSettingsFromMenu,
                     onAllNotes = ::onAllNotesFromMenu,
@@ -321,6 +327,7 @@ fun WeekerApp(container: AppContainer) {
                     eventsFlow = container.eventRepository.observeWeek(start),
                     notesFlow = container.weekNoteRepository.observeByWeek(start),
                     weekStatusColors = palette.weekStatusColors,
+                    allowEditPast = allowEditPast,
                     onBack = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
                     onAllNotes = ::onAllNotesFromMenu,
@@ -363,6 +370,7 @@ fun WeekerApp(container: AppContainer) {
                     t = ::t,
                     epochDay = dayEpoch,
                     eventsFlow = container.eventRepository.observeDay(dayEpoch),
+                    allowEditPast = allowEditPast,
                     onBack = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
                     onAllNotes = ::onAllNotesFromMenu,
@@ -410,6 +418,7 @@ fun WeekerApp(container: AppContainer) {
                 EventEditScreen(
                     t = ::t,
                     epochDay = epochDay,
+                    allowEditPast = allowEditPast,
                     onBack = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
                     onAllNotes = ::onAllNotesFromMenu,
@@ -444,6 +453,7 @@ fun WeekerApp(container: AppContainer) {
                         initialTitle = event.title,
                         initialNote = event.note,
                         isEdit = true,
+                        allowEditPast = allowEditPast,
                         onBack = ::goBack,
                         onOpenSettings = ::onSettingsFromMenu,
                         onAllNotes = ::onAllNotesFromMenu,
@@ -527,6 +537,10 @@ fun WeekerApp(container: AppContainer) {
                     onAbout = ::onAboutFromMenu,
                     onExit = ::onExitFromMenu,
                     onTemplates = { navController.navigate(Routes.TEMPLATES) },
+                    allowEditPast = allowEditPast,
+                    onAllowEditPastChanged = { allow ->
+                        scope.launch { container.settingsRepository.setAllowEditPast(allow) }
+                    },
                     onSave = { language, mode ->
                         scope.launch {
                             container.settingsRepository.setLanguage(language)
@@ -669,6 +683,7 @@ fun WeekerApp(container: AppContainer) {
                 languageCode = selectedLanguage,
                 titleKey = "move to",
                 initialEpochDay = moveTarget.dateEpochDay,
+                allowEditPast = allowEditPast,
                 onDismiss = { moveEventTarget = null },
                 onConfirm = { newEpochDay ->
                     scope.launch {
@@ -690,6 +705,7 @@ fun WeekerApp(container: AppContainer) {
                 languageCode = selectedLanguage,
                 titleKey = "copy to",
                 initialEpochDay = copyTarget.dateEpochDay,
+                allowEditPast = allowEditPast,
                 onDismiss = { copyEventTarget = null },
                 onConfirm = { newEpochDay ->
                     scope.launch {
@@ -774,11 +790,12 @@ private fun MoveEventDateDialog(
     languageCode: String,
     titleKey: String,
     initialEpochDay: Long,
+    allowEditPast: Boolean = false,
     onDismiss: () -> Unit,
     onConfirm: (Long) -> Unit
 ) {
     var selectedEpochDay by remember { mutableLongStateOf(initialEpochDay) }
-    val canConfirm = selectedEpochDay >= LocalDate.now().toEpochDay()
+    val canConfirm = selectedEpochDay >= LocalDate.now().toEpochDay() || allowEditPast
 
     AlertDialog(
         onDismissRequest = onDismiss,

@@ -54,6 +54,7 @@ fun WeekScreen(
     eventsFlow: Flow<List<EventEntity>>,
     notesFlow: Flow<List<WeekNoteEntity>>,
     weekStatusColors: WeekStatusColors,
+    allowEditPast: Boolean = false,
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
     onAllNotes: () -> Unit = {},
@@ -194,7 +195,7 @@ fun WeekScreen(
                     day > todayEpochDay -> futureColor
                     else -> currentColor
                 }
-                val canAdd = day >= todayEpochDay
+                val canAdd = day >= todayEpochDay || allowEditPast
                 val isLight = MaterialTheme.colorScheme.surface.luminance() > 0.5f
                 val dayEventColorA = if (isLight) Color(0xFFFFF6CC) else Color(0xFF3A3520)
                 val dayEventColorB = if (isLight) Color(0xFFE3F2FD) else Color(0xFF1C2D3A)
@@ -237,7 +238,7 @@ fun WeekScreen(
                             t = t,
                             onToggleDone = { checked -> onToggleDone(event, checked) },
                             onEdit = onEditEvent,
-                            onDelete = if (day >= todayEpochDay) {{ deletingEvent = it }} else {{ showWarning = true }},
+                            onDelete = if (day >= todayEpochDay || allowEditPast) {{ deletingEvent = it }} else {{ showWarning = true }},
                             onMoveTo = onMoveEvent,
                             onCopyTo = onCopyEvent,
                             onMoveUp = if (!event.isDone) ({ onMoveEventUp(event) }) else null,

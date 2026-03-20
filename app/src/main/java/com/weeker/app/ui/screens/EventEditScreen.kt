@@ -53,6 +53,7 @@ fun EventEditScreen(
     initialTitle: String = "",
     initialNote: String = "",
     isEdit: Boolean = false,
+    allowEditPast: Boolean = false,
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
     onAllNotes: () -> Unit = {},
@@ -66,7 +67,7 @@ fun EventEditScreen(
 ) {
     val title = remember { mutableStateOf(initialTitle) }
     val note = remember { mutableStateOf(initialNote) }
-    val isPastDay = epochDay < LocalDate.now().toEpochDay()
+    val isPastDay = epochDay < LocalDate.now().toEpochDay() && !allowEditPast
     val titleFocusRequester = remember { FocusRequester() }
     val noteFocusRequester = remember { FocusRequester() }
     val templates by templatesFlow.collectAsState(initial = emptyList())

@@ -14,6 +14,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,6 +46,8 @@ fun SettingsScreen(
     onAbout: () -> Unit,
     onExit: () -> Unit,
     onTemplates: () -> Unit,
+    allowEditPast: Boolean,
+    onAllowEditPastChanged: (Boolean) -> Unit,
     onSave: (String, ThemeMode) -> Unit,
     onBack: () -> Unit
 ) {
@@ -103,6 +106,21 @@ fun SettingsScreen(
             value = "",
             onClick = onTemplates
         )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onAllowEditPastChanged(!allowEditPast) }
+                .padding(vertical = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = t("edit past days").titleCaseFirst(), fontSize = 20.sp)
+            Switch(
+                checked = allowEditPast,
+                onCheckedChange = onAllowEditPastChanged
+            )
+        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),

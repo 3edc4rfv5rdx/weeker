@@ -6,13 +6,17 @@ import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
 class EventRepository(private val dao: EventDao) {
+    var allowEditPast: Boolean = false
+
     fun observeDay(epochDay: Long): Flow<List<EventEntity>> = dao.observeByDay(epochDay)
 
     fun observeWeek(weekStartEpochDay: Long): Flow<List<EventEntity>> =
         dao.observeByWeek(weekStartEpochDay, weekStartEpochDay + 6)
 
     private fun requireNotPast(epochDay: Long) {
-        require(epochDay >= LocalDate.now().toEpochDay()) { "Past dates are not allowed" }
+        if (!allowEditPast) {
+            require(epochDay >= LocalDate.now().toEpochDay()) { "Past dates are not allowed" }
+        }
     }
 
     suspend fun addEvent(title: String, note: String, epochDay: Long) {
