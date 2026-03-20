@@ -58,8 +58,6 @@ fun WeekScreen(
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
     onAllNotes: () -> Unit = {},
-    onBackup: () -> Unit,
-    onRestore: () -> Unit,
     onAbout: () -> Unit,
     onExit: () -> Unit,
     onToggleDone: (EventEntity, Boolean) -> Unit,
@@ -144,8 +142,6 @@ fun WeekScreen(
                 t = t,
                 onSettings = onOpenSettings,
                 onAllNotes = onAllNotes,
-                onBackup = onBackup,
-                onRestore = onRestore,
                 onAbout = onAbout,
                 onExit = onExit
             )

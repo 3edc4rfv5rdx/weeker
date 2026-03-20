@@ -32,10 +32,6 @@ fun OnboardingScreen(
     currentMode: ThemeMode,
     languages: List<String>,
     onBack: () -> Unit,
-    onOpenSettings: () -> Unit,
-    onAllNotes: () -> Unit = {},
-    onBackup: () -> Unit,
-    onRestore: () -> Unit,
     onAbout: () -> Unit,
     onExit: () -> Unit,
     onSave: (String, ThemeMode) -> Unit
@@ -63,10 +59,6 @@ fun OnboardingScreen(
                 }
                 AppMenuButton(
                     t = t,
-                    onSettings = onOpenSettings,
-                    onAllNotes = onAllNotes,
-                    onBackup = onBackup,
-                    onRestore = onRestore,
                     onAbout = onAbout,
                     onExit = onExit
                 )
@@ -107,7 +99,7 @@ fun OnboardingScreen(
 
         item {
             WeekerButton(
-                text = t("continue"),
+                text = t("start").titleCaseFirst(),
                 onClick = { onSave(selectedLanguage.value, selectedMode.value) },
                 modifier = Modifier.fillMaxWidth()
             )

@@ -253,10 +253,6 @@ fun WeekerApp(container: AppContainer) {
                     currentMode = selectedThemeMode,
                     languages = container.localizationManager.availableLanguages(),
                     onBack = ::exitFromAnyScreenByDoubleTap,
-                    onOpenSettings = ::onSettingsFromMenu,
-                    onAllNotes = ::onAllNotesFromMenu,
-                    onBackup = ::onBackupFromMenu,
-                    onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
                     onExit = ::onExitFromMenu,
                     onSave = { language, mode ->
@@ -282,8 +278,6 @@ fun WeekerApp(container: AppContainer) {
                     onBack = ::exitFromAnyScreenByDoubleTap,
                     onOpenSettings = ::onSettingsFromMenu,
                     onAllNotes = ::onAllNotesFromMenu,
-                    onBackup = ::onBackupFromMenu,
-                    onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
                     onExit = ::onExitFromMenu,
                     onToggleDone = { event, checked ->
@@ -331,8 +325,6 @@ fun WeekerApp(container: AppContainer) {
                     onBack = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
                     onAllNotes = ::onAllNotesFromMenu,
-                    onBackup = ::onBackupFromMenu,
-                    onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
                     onExit = ::onExitFromMenu,
                     onToggleDone = { event, checked ->
@@ -374,8 +366,6 @@ fun WeekerApp(container: AppContainer) {
                     onBack = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
                     onAllNotes = ::onAllNotesFromMenu,
-                    onBackup = ::onBackupFromMenu,
-                    onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
                     onExit = ::onExitFromMenu,
                     onToggleDone = { event, checked ->
@@ -422,8 +412,6 @@ fun WeekerApp(container: AppContainer) {
                     onBack = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
                     onAllNotes = ::onAllNotesFromMenu,
-                    onBackup = ::onBackupFromMenu,
-                    onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
                     onExit = ::onExitFromMenu,
                     onSave = { title, note ->
@@ -457,8 +445,6 @@ fun WeekerApp(container: AppContainer) {
                         onBack = ::goBack,
                         onOpenSettings = ::onSettingsFromMenu,
                         onAllNotes = ::onAllNotesFromMenu,
-                        onBackup = ::onBackupFromMenu,
-                        onRestore = ::onRestoreFromMenu,
                         onAbout = ::onAboutFromMenu,
                         onExit = ::onExitFromMenu,
                         onSave = { title, note ->
@@ -486,8 +472,6 @@ fun WeekerApp(container: AppContainer) {
                     onBack = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
                     onAllNotes = ::onAllNotesFromMenu,
-                    onBackup = ::onBackupFromMenu,
-                    onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
                     onExit = ::onExitFromMenu,
                     onAddNote = { text ->
@@ -509,8 +493,6 @@ fun WeekerApp(container: AppContainer) {
                     onBack = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
                     onAllNotes = ::onAllNotesFromMenu,
-                    onBackup = ::onBackupFromMenu,
-                    onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
                     onExit = ::onExitFromMenu,
                     onUpdateNote = { note, text ->
@@ -532,10 +514,10 @@ fun WeekerApp(container: AppContainer) {
                     onBackArrow = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
                     onAllNotes = ::onAllNotesFromMenu,
-                    onBackup = ::onBackupFromMenu,
-                    onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
                     onExit = ::onExitFromMenu,
+                    onBackup = ::onBackupFromMenu,
+                    onRestore = ::onRestoreFromMenu,
                     onTemplates = { navController.navigate(Routes.TEMPLATES) },
                     allowEditPast = allowEditPast,
                     onAllowEditPastChanged = { allow ->
@@ -557,8 +539,6 @@ fun WeekerApp(container: AppContainer) {
                     onBack = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
                     onAllNotes = ::onAllNotesFromMenu,
-                    onBackup = ::onBackupFromMenu,
-                    onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
                     onExit = ::onExitFromMenu,
                     onAddTemplate = { title ->
@@ -596,8 +576,6 @@ fun WeekerApp(container: AppContainer) {
                     onCancel = ::goBack,
                     onOpenSettings = ::onSettingsFromMenu,
                     onAllNotes = ::onAllNotesFromMenu,
-                    onBackup = ::onBackupFromMenu,
-                    onRestore = ::onRestoreFromMenu,
                     onAbout = ::onAboutFromMenu,
                     onExit = ::onExitFromMenu
                 )
@@ -732,8 +710,6 @@ private fun WeekPickerScreen(
     onCancel: () -> Unit,
     onOpenSettings: () -> Unit,
     onAllNotes: () -> Unit = {},
-    onBackup: () -> Unit,
-    onRestore: () -> Unit,
     onAbout: () -> Unit,
     onExit: () -> Unit
 ) {
@@ -760,8 +736,6 @@ private fun WeekPickerScreen(
                 t = t,
                 onSettings = onOpenSettings,
                 onAllNotes = onAllNotes,
-                onBackup = onBackup,
-                onRestore = onRestore,
                 onAbout = onAbout,
                 onExit = onExit
             )

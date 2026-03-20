@@ -79,8 +79,6 @@ fun SettingsScreen(
                 t = t,
                 onSettings = onOpenSettings,
                 onAllNotes = onAllNotes,
-                onBackup = onBackup,
-                onRestore = onRestore,
                 onAbout = onAbout,
                 onExit = onExit
             )
@@ -118,6 +116,18 @@ fun SettingsScreen(
                 onCheckedChange = onAllowEditPastChanged
             )
         }
+
+        SettingsRow(
+            label = t("backup").titleCaseFirst(),
+            value = "",
+            onClick = onBackup
+        )
+
+        SettingsRow(
+            label = t("restore").titleCaseFirst(),
+            value = "",
+            onClick = onRestore
+        )
     }
 
     if (showLanguageDialog) {

@@ -23,10 +23,8 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun AppMenuButton(
     t: (String) -> String,
-    onSettings: () -> Unit,
-    onAllNotes: () -> Unit = {},
-    onBackup: () -> Unit,
-    onRestore: () -> Unit,
+    onSettings: (() -> Unit)? = null,
+    onAllNotes: (() -> Unit)? = null,
     onAbout: () -> Unit,
     onExit: () -> Unit
 ) {
@@ -45,38 +43,26 @@ fun AppMenuButton(
             onDismissRequest = { expanded = false },
             modifier = androidx.compose.ui.Modifier.background(menuBg)
         ) {
-            DropdownMenuItem(
-                text = { Text(t("settings").titleCaseFirst(), fontSize = 20.sp, color = menuText) },
-                onClick = {
-                    expanded = false
-                    onSettings()
-                },
-                colors = MenuDefaults.itemColors(textColor = menuText)
-            )
-            DropdownMenuItem(
-                text = { Text(t("all notes").titleCaseFirst(), fontSize = 20.sp, color = menuText) },
-                onClick = {
-                    expanded = false
-                    onAllNotes()
-                },
-                colors = MenuDefaults.itemColors(textColor = menuText)
-            )
-            DropdownMenuItem(
-                text = { Text(t("backup").titleCaseFirst(), fontSize = 20.sp, color = menuText) },
-                onClick = {
-                    expanded = false
-                    onBackup()
-                },
-                colors = MenuDefaults.itemColors(textColor = menuText)
-            )
-            DropdownMenuItem(
-                text = { Text(t("restore").titleCaseFirst(), fontSize = 20.sp, color = menuText) },
-                onClick = {
-                    expanded = false
-                    onRestore()
-                },
-                colors = MenuDefaults.itemColors(textColor = menuText)
-            )
+            if (onSettings != null) {
+                DropdownMenuItem(
+                    text = { Text(t("settings").titleCaseFirst(), fontSize = 20.sp, color = menuText) },
+                    onClick = {
+                        expanded = false
+                        onSettings()
+                    },
+                    colors = MenuDefaults.itemColors(textColor = menuText)
+                )
+            }
+            if (onAllNotes != null) {
+                DropdownMenuItem(
+                    text = { Text(t("all notes").titleCaseFirst(), fontSize = 20.sp, color = menuText) },
+                    onClick = {
+                        expanded = false
+                        onAllNotes()
+                    },
+                    colors = MenuDefaults.itemColors(textColor = menuText)
+                )
+            }
             DropdownMenuItem(
                 text = { Text(t("about").titleCaseFirst(), fontSize = 20.sp, color = menuText) },
                 onClick = {

@@ -57,8 +57,6 @@ fun EventEditScreen(
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
     onAllNotes: () -> Unit = {},
-    onBackup: () -> Unit,
-    onRestore: () -> Unit,
     onAbout: () -> Unit,
     onExit: () -> Unit,
     onSave: (String, String) -> Unit,
@@ -115,8 +113,6 @@ fun EventEditScreen(
                 t = t,
                 onSettings = onOpenSettings,
                 onAllNotes = onAllNotes,
-                onBackup = onBackup,
-                onRestore = onRestore,
                 onAbout = onAbout,
                 onExit = onExit
             )

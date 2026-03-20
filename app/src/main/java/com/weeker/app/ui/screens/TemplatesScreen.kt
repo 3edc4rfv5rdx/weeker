@@ -50,8 +50,6 @@ fun TemplatesScreen(
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
     onAllNotes: () -> Unit = {},
-    onBackup: () -> Unit,
-    onRestore: () -> Unit,
     onAbout: () -> Unit,
     onExit: () -> Unit,
     onAddTemplate: (String) -> Unit,
@@ -92,8 +90,6 @@ fun TemplatesScreen(
                 t = t,
                 onSettings = onOpenSettings,
                 onAllNotes = onAllNotes,
-                onBackup = onBackup,
-                onRestore = onRestore,
                 onAbout = onAbout,
                 onExit = onExit
             )

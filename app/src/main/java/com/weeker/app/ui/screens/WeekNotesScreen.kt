@@ -54,8 +54,6 @@ fun WeekNotesScreen(
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
     onAllNotes: () -> Unit = {},
-    onBackup: () -> Unit,
-    onRestore: () -> Unit,
     onAbout: () -> Unit,
     onExit: () -> Unit,
     onAddNote: (String) -> Unit,
@@ -96,8 +94,6 @@ fun WeekNotesScreen(
                 t = t,
                 onSettings = onOpenSettings,
                 onAllNotes = onAllNotes,
-                onBackup = onBackup,
-                onRestore = onRestore,
                 onAbout = onAbout,
                 onExit = onExit
             )
