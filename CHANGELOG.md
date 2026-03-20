@@ -2,11 +2,12 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
-## 0.6.20260320+176
+## 0.6.20260320+178
 - N Add setting to allow editing past days (add, delete, move, copy events)
 - F Remove save/cancel buttons from settings, apply changes instantly
 - F Move backup/restore from menu to settings screen
 - F Simplify welcome screen: only About and Exit in menu, Start button
+- F Fix notes button on week screen to be perfectly circular
 
 ## 0.6.20260316+161
 - F Center event row menu horizontally
