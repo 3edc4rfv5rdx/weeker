@@ -2,6 +2,9 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
+## 0.6.20260320+190
+- R Remove dead theme palette code from SettingsRepository and WeekerApp
+
 ## 0.6.20260320+188
 - N Add restore from backup list dialog with setting to switch between dialog and file picker
 - E Fix backup list to show all backups via MANAGE_EXTERNAL_STORAGE permission

@@ -121,14 +121,13 @@ fun WeekerApp(container: AppContainer) {
     val weeksWithNotes by container.weekNoteRepository.observeWeeksWithNotes().collectAsState(initial = emptySet())
 
     val defaultLanguage = remember { container.localizationManager.defaultLanguage() }
-    val defaultThemeId = remember { container.themeManager.defaultThemeId() }
     val defaultThemeMode = remember { container.themeManager.defaultMode() }
     val onboardingLanguage = remember {
         container.localizationManager.availableLanguages().firstOrNull() ?: defaultLanguage
     }
     val selectedLanguage = selectedLanguagePref ?: onboardingLanguage
     val selectedThemeMode = ThemeMode.fromId(selectedThemeModePref ?: defaultThemeMode.id)
-    val theme = remember(defaultThemeId) { container.themeManager.themeById(defaultThemeId) }
+    val theme = remember { container.themeManager.themeById(container.themeManager.defaultThemeId()) }
     val palette = remember(theme, selectedThemeMode) { theme.palette(selectedThemeMode) }
 
     fun t(key: String): String = container.localizationManager.text(key, selectedLanguage)
