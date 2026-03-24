@@ -4,6 +4,12 @@ set -e
 PROJECT="weeker"
 APK_DIR="app/build/outputs/apk/release"
 CHANGELOG_FILE="/tmp/release_notes_$$.md"
+DRY_RUN=false
+
+# ------------------------------------------------------------
+# Dry-run mode: show what would happen without touching GitHub
+# ------------------------------------------------------------
+#DRY_RUN=true
 
 # ------------------------------------------------------------
 # Upload protection
@@ -58,10 +64,13 @@ else
     echo "No previous tag, collecting entire changelog."
 fi
 
-awk -v cur="## ${VERSION}+${BUILD}" -v stop="$STOP_HEADER" '
+awk -v cur="## ${VERSION}+${BUILD}" -v stop_build="$PREV_BUILD" '
     $0 == cur { capture=1; next }
-    capture && stop != "" && $0 == stop { exit }
-    capture && /^## / { print ""; print $0; next }
+    capture && stop_build != "" && /^## / {
+        b = $0; sub(/.*\+/, "", b); sub(/[^0-9].*/, "", b)
+        if (b+0 <= stop_build+0) exit
+        print ""; print $0; next
+    }
     capture { print }
 ' CHANGELOG.md > "$CHANGELOG_FILE"
 
@@ -102,7 +111,11 @@ FILES=(
 # ------------------------------------------------------------
 echo "=== Checking if GitHub Release exists ==="
 
-if gh release view "$TAG" >/dev/null 2>&1; then
+if $DRY_RUN; then
+    echo "[DRY RUN] Would create release: $TAG"
+    echo "[DRY RUN] Title: Release $TAG"
+    echo "[DRY RUN] Notes file: $CHANGELOG_FILE"
+elif gh release view "$TAG" >/dev/null 2>&1; then
     echo "Release already exists."
 else
     echo "Creating GitHub Release..."
@@ -121,6 +134,11 @@ upload_asset() {
 
     echo "--------------------------------------------------"
     echo "Uploading: $(basename "$src") -> $dst"
+
+    if $DRY_RUN; then
+        echo "[DRY RUN] Would upload: $(basename "$src") -> $dst"
+        return 0
+    fi
 
     for ((i=1; i<=UPLOAD_RETRY; i++)); do
         echo "Attempt $i/$UPLOAD_RETRY..."
