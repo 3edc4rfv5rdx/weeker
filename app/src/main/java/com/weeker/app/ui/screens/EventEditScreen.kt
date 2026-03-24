@@ -10,11 +10,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -61,7 +66,9 @@ fun EventEditScreen(
     onExit: () -> Unit,
     onSave: (String, String) -> Unit,
     onCancel: () -> Unit,
-    templatesFlow: Flow<List<EventTemplateEntity>> = flowOf(emptyList())
+    templatesFlow: Flow<List<EventTemplateEntity>> = flowOf(emptyList()),
+    onSaveAsTemplate: (String) -> Unit = {},
+    onWarning: (String) -> Unit = {}
 ) {
     val title = remember { mutableStateOf(initialTitle) }
     val note = remember { mutableStateOf(initialNote) }
@@ -129,7 +136,14 @@ fun EventEditScreen(
                     .fillMaxWidth()
                     .focusRequester(titleFocusRequester)
                     .onFocusChanged { if (it.isFocused) activeField = "title" },
-                singleLine = true
+                singleLine = true,
+                trailingIcon = {
+                    if (title.value.isNotEmpty()) {
+                        IconButton(onClick = { title.value = "" }, modifier = Modifier.size(24.dp)) {
+                            Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(18.dp))
+                        }
+                    }
+                }
             )
             if (activeField == "title" && suggestions.isNotEmpty()) {
                 Popup(
@@ -162,7 +176,14 @@ fun EventEditScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(noteFocusRequester)
-                    .onFocusChanged { if (it.isFocused) activeField = "note" }
+                    .onFocusChanged { if (it.isFocused) activeField = "note" },
+                trailingIcon = {
+                    if (note.value.isNotEmpty()) {
+                        IconButton(onClick = { note.value = "" }, modifier = Modifier.size(24.dp)) {
+                            Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(18.dp))
+                        }
+                    }
+                }
             )
             if (activeField == "note" && suggestions.isNotEmpty()) {
                 Popup(
@@ -186,12 +207,19 @@ fun EventEditScreen(
             }
         }
 
-        if (templates.isNotEmpty()) {
-            Row {
+        if (isPastDay && !isEdit) {
+            Text(text = t("cannot add events in past"), fontSize = 16.sp)
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(modifier = Modifier.weight(1f)) {
                 WeekerButton(
                     text = t("from template"),
                     onClick = { showTemplateMenu = true },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = templates.isNotEmpty()
                 )
                 DropdownMenu(
                     expanded = showTemplateMenu,
@@ -214,9 +242,22 @@ fun EventEditScreen(
                     }
                 }
             }
-        }
-        if (isPastDay && !isEdit) {
-            Text(text = t("cannot add events in past"), fontSize = 16.sp)
+            WeekerButton(
+                text = t("to templates"),
+                onClick = {
+                    val trimmed = title.value.trim()
+                    if (trimmed.isNotBlank()) {
+                        val duplicate = templates.any { it.title.equals(trimmed, ignoreCase = true) }
+                        if (duplicate) {
+                            onWarning(t("template already exists"))
+                        } else {
+                            onSaveAsTemplate(trimmed)
+                        }
+                    }
+                },
+                modifier = Modifier.weight(1f),
+                enabled = title.value.isNotBlank()
+            )
         }
         Row(
             modifier = Modifier.fillMaxWidth(),

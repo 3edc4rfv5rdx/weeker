@@ -479,7 +479,12 @@ fun WeekerApp(container: AppContainer) {
                         }
                     },
                     onCancel = { navController.popBackStack() },
-                    templatesFlow = container.eventTemplateRepository.observeAll()
+                    templatesFlow = container.eventTemplateRepository.observeAll(),
+                    onSaveAsTemplate = { title ->
+                        scope.launch { container.eventTemplateRepository.addTemplate(title) }
+                        successToastText = t("to templates")
+                    },
+                    onWarning = { msg -> warningToastText = msg }
                 )
             }
 
@@ -512,7 +517,12 @@ fun WeekerApp(container: AppContainer) {
                             }
                         },
                         onCancel = { navController.popBackStack() },
-                        templatesFlow = container.eventTemplateRepository.observeAll()
+                        templatesFlow = container.eventTemplateRepository.observeAll(),
+                        onSaveAsTemplate = { title ->
+                            scope.launch { container.eventTemplateRepository.addTemplate(title) }
+                            successToastText = t("to templates")
+                        },
+                        onWarning = { msg -> warningToastText = msg }
                     )
                 }
             }

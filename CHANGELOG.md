@@ -2,6 +2,11 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
+## 0.6.20260324+194
+- N Add save-to-template button on event edit screen with duplicate check
+- N Add clear (X) buttons to title and comment fields
+- F Rearrange buttons into 2x2 grid: from/to templates + cancel/save
+
 ## 0.6.20260320+191
 - F Set default language to English and reorder languages to en, uk, ru
 
