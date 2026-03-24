@@ -6,21 +6,22 @@ Weekly planner for Android. Simple, lightweight, offline-first.
 
  - **Day & Week views** with quick navigation between them
  - **Event management**: add, edit, delete, reorder (drag handle), copy/move to another day
- - **Calendar picker** with context-aware mode (day or week selection)
- - **Backup/Restore** to SQLite `.db` and CSV files
-  - **Dedicated CSV export** from Settings for spreadsheet-friendly copies
+ - **Event templates**: save titles as templates, autocomplete suggestions while typing, fill from template list
+ - **Week notes**: add, edit, delete notes per week; notes indicator on week header
+ - **All notes**: browse all week notes with search, grouped by week
+ - **Calendar picker** with context-aware mode (day or week selection), weeks with notes highlighted
+ - **Backup/Restore** to SQLite `.db` and CSV files, restore from backup list or file picker
  - **Dark/Light theme** with adaptive colors
  - **3 languages**: English, Ukrainian, Russian
+ - **Settings**: edit past days toggle, language/theme selection, templates management
+ - **Colored in-app toasts** for success, error, warning, and info messages
  - **Double-back exit** from main screen
-- **Localized onboarding** in the primary Ukrainian language that still lets you switch to English or Russian the moment you open the app
-- **Themes from assets** let you preview curated palettes without downloading updates
-- **Lightweight storage strategy:** everything is offline, stored inside Room/DataStore, so syncing is never needed
-- **Quick exports:** backup creates both `.db` and `.csv` copies, ready for transfer without digging through settings
-- **Current notes**
-  - On API < 29 backup files are written to `Documents/Weeker`, so the install needs the legacy storage permission to use those exports.
-  - Theme changes persist in DataStore, and the app will read them once the saved `themeId` is passed to `ThemeManager`.
-  - The onboarding flow is wired to pick the first language returned by `LocalizationManager.availableLanguages()` (currently `"en"`) unless overridden.
-  - No automated tests are added yet (`app/src/test` and `app/src/androidTest` are not present).
+ - **Onboarding** with language and theme selection
+
+## Notes
+
+- On API < 29 backup files are written to `Documents/Weeker`, so the install needs the legacy storage permission to use those exports.
+- No automated tests are added yet (`app/src/test` and `app/src/androidTest` are not present).
 
 ## Tech Stack
 
