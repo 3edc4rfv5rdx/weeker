@@ -36,7 +36,8 @@ val buildMetaMap = buildMetaRaw.lineSequence()
     }
 val isBuildInvocation = gradle.startParameter.taskNames.any { task ->
     val name = task.lowercase()
-    name.contains("assemble") || name.contains("bundle") || name.contains("install")
+    (name.contains("assemble") || name.contains("bundle") || name.contains("install"))
+        && !name.contains("release")
 }
 val storedBuildNumber = run {
     val direct = buildMetaRaw.toIntOrNull()
