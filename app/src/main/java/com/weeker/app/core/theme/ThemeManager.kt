@@ -84,9 +84,9 @@ class ThemeManager(context: Context) {
         surface = Color.White,
         onSurface = Color(0xFF111111),
         weekStatusColors = WeekStatusColors(
-            past = WeekStateColor(container = Color(0xFFF39C12), content = Color(0xFF111111)),
-            current = WeekStateColor(container = Color(0xFF2E7D32), content = Color.White),
-            future = WeekStateColor(container = Color(0xFF1565C0), content = Color.White)
+            past = WeekStateColor(container = Color(0xFFC4A674), content = Color(0xFF2A2118)),
+            current = WeekStateColor(container = Color(0xFF5A9473), content = Color.White),
+            future = WeekStateColor(container = Color(0xFF5A8DB5), content = Color.White)
         )
     )
 

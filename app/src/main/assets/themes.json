@@ -13,9 +13,9 @@
         "surface": "#FFFFFF",
         "onSurface": "#182129",
         "weekStatusColors": {
-          "past": { "container": "#E1A35B", "content": "#1C160E" },
-          "current": { "container": "#3F865C", "content": "#FFFFFF" },
-          "future": { "container": "#2F73AF", "content": "#FFFFFF" }
+          "past": { "container": "#C4A674", "content": "#2A2118" },
+          "current": { "container": "#5A9473", "content": "#FFFFFF" },
+          "future": { "container": "#5A8DB5", "content": "#FFFFFF" }
         }
       },
       "dark": {
@@ -26,9 +26,9 @@
         "surface": "#1A2128",
         "onSurface": "#E8EEF3",
         "weekStatusColors": {
-          "past": { "container": "#CF9654", "content": "#151008" },
-          "current": { "container": "#3A8158", "content": "#FFFFFF" },
-          "future": { "container": "#2C699F", "content": "#FFFFFF" }
+          "past": { "container": "#A48A5A", "content": "#1A1408" },
+          "current": { "container": "#4A7A60", "content": "#FFFFFF" },
+          "future": { "container": "#4A7A9A", "content": "#FFFFFF" }
         }
       }
     }

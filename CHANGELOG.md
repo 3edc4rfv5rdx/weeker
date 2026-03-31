@@ -2,6 +2,10 @@
 
 > N=new feature, E=error fix, F=fine-tune, R=refactor, I=infrastructure, T=tag
 
+## 0.6.20260331+197
+- F Simplify week date range format to YYYY.MM.DD-MM.DD
+- F Mute week status colors for softer appearance
+
 ## 0.6.20260324+196
 - N Add save-to-template button on event edit screen with duplicate check
 - N Add clear (X) buttons to title and comment fields

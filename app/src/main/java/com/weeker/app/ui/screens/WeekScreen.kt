@@ -290,10 +290,10 @@ private fun formatWeekRange(weekStart: Long): String {
     val start = LocalDate.ofEpochDay(weekStart)
     val end = start.plusDays(6)
     val startText = start.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
-    return if (start.year == end.year && start.month == end.month) {
+    return if (start.month == end.month) {
         "$startText-${end.format(DateTimeFormatter.ofPattern("dd"))}"
     } else {
-        "$startText-${end.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))}"
+        "$startText-${end.format(DateTimeFormatter.ofPattern("MM.dd"))}"
     }
 }
 
